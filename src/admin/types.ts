@@ -74,4 +74,5 @@ export interface Page {
   title: string;
   slug: string; // URL-friendly identifier
   content: string; // Page content (e.g., Markdown, HTML)
+  order: number; // Add order field
 }

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Added useCallback, useMemo
 // Import necessary types and Firebase functions
 import { Page } from '../types'; // Use the defined Page type
 import { db } from '../../firebaseConfig';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore'; // Import Firestore functions
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore'; // Import Firestore functions, added writeBatch
+import { Trash2, Edit, Save, XCircle, ArrowUp, ArrowDown } from 'lucide-react'; // Added icons
 
 const PagesTab: React.FC = () => {
   // State for managing pages
@@ -15,35 +16,38 @@ const PagesTab: React.FC = () => {
   const [pageTitle, setPageTitle] = useState('');
   const [pageSlug, setPageSlug] = useState('');
   const [pageContent, setPageContent] = useState(''); // Or use a richer editor state
+  const [pageOrder, setPageOrder] = useState(0); // Add state for order
+
+  // Memoize collection ref
+  const pagesCollectionRef = useMemo(() => db ? collection(db, 'pages') : null, []);
 
   // Fetch pages from Firestore on component mount
-  useEffect(() => {
-    const fetchPages = async () => {
-      setIsLoading(true);
-      setError(null);
-      if (!db) {
-        setError("Firestore database is not initialized.");
-        setIsLoading(false);
-        return;
-      }
-      try {
-        console.log('Fetching pages from Firestore...');
-        const pagesCol = collection(db, 'pages');
-        // Optional: Order pages by title or another field
-        const pagesQuery = query(pagesCol, orderBy('title'));
-        const pageSnapshot = await getDocs(pagesQuery);
-        const pagesList = pageSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Page));
-        setPages(pagesList);
-      } catch (err) {
-        console.error("Error fetching pages:", err);
-        setError('Failed to load pages. Ensure the "pages" collection exists in Firestore.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchPages = useCallback(async () => {
+    if (!db || !pagesCollectionRef) {
+      setError("Firestore database is not initialized.");
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log('Fetching pages from Firestore...');
+      // Order pages by the 'order' field
+      const pagesQuery = query(pagesCollectionRef, orderBy('order', 'asc')); // Changed orderBy field
+      const pageSnapshot = await getDocs(pagesQuery);
+      const pagesList = pageSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Page));
+      setPages(pagesList);
+    } catch (err) {
+      console.error("Error fetching pages:", err);
+      setError('Failed to load pages. Ensure the "pages" collection exists and has an "order" field.'); // Updated error message
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagesCollectionRef]); // Add dependency
 
+  useEffect(() => {
     fetchPages();
-  }, []);
+  }, [fetchPages]); // Use the useCallback version
 
   // Implement form submission logic (add/update)
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,8 +63,17 @@ const PagesTab: React.FC = () => {
       setIsLoading(false);
       return;
     }
+    // Calculate order for new page
+    const orderForNewPage = pages.length > 0 ? Math.max(...pages.map(p => p.order)) + 1 : 0;
+    const currentOrder = isEditing ? pageOrder : orderForNewPage;
+
     // Create page data object without the ID for saving
-    const pageData: Omit<Page, 'id'> = { title: pageTitle, slug: pageSlug, content: pageContent };
+    const pageData: Omit<Page, 'id'> = {
+        title: pageTitle,
+        slug: pageSlug,
+        content: pageContent,
+        order: currentOrder // Include order
+    };
 
     try {
       if (isEditing) {
@@ -68,20 +81,17 @@ const PagesTab: React.FC = () => {
         console.log('Updating page in Firestore:', isEditing, pageData);
         const pageRef = doc(db, 'pages', isEditing);
         await updateDoc(pageRef, pageData);
-        // Update local state
-        setPages(pages.map(p => p.id === isEditing ? { ...pageData, id: isEditing } : p));
         console.log('Page updated successfully.');
       } else {
         // Add new page
         console.log('Adding new page to Firestore:', pageData);
-        const pagesCol = collection(db, 'pages');
-        const docRef = await addDoc(pagesCol, pageData);
-        // Add to local state with new ID
-        setPages([...pages, { ...pageData, id: docRef.id }]);
-        console.log('Page added successfully with ID:', docRef.id);
+        if (!pagesCollectionRef) throw new Error("Collection reference not available");
+        await addDoc(pagesCollectionRef, pageData);
+        console.log('Page added successfully.');
       }
-      // Reset form and exit editing mode
+      // Reset form and fetch updated list
       resetForm();
+      fetchPages(); // Fetch updated list including the new/updated item and correct order
     } catch (err) {
       console.error("Error saving page:", err);
       setError('Failed to save page. Check console for details.');
@@ -136,6 +146,7 @@ const PagesTab: React.FC = () => {
     setPageTitle(page.title);
     setPageSlug(page.slug);
     setPageContent(page.content);
+    setPageOrder(page.order); // Set order when editing
   };
 
   // Function to reset the form
@@ -144,7 +155,44 @@ const PagesTab: React.FC = () => {
     setPageTitle('');
     setPageSlug('');
     setPageContent('');
+    setPageOrder(0); // Reset order
   };
+
+  // --- Add Move Up/Down Handlers ---
+  const handleMove = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= pages.length || !db || !pagesCollectionRef) return; // Boundary checks and db check
+
+    setError(null);
+    setIsLoading(true); // Indicate activity
+
+    const pageToMove = pages[index];
+    const pageToSwapWith = pages[newIndex];
+
+    // Prepare batch write
+    const batch = writeBatch(db);
+    const pageToMoveRef = doc(pagesCollectionRef, pageToMove.id!);
+    const pageToSwapWithRef = doc(pagesCollectionRef, pageToSwapWith.id!);
+
+    // Swap order values
+    batch.update(pageToMoveRef, { order: pageToSwapWith.order });
+    batch.update(pageToSwapWithRef, { order: pageToMove.order });
+
+    try {
+      await batch.commit();
+      fetchPages(); // Refresh list with new order
+    } catch (err) {
+      console.error(`Error moving page ${direction}:`, err);
+      setError(`Failed to reorder page. Please try again.`);
+      setIsLoading(false); // Ensure loading state is reset on error
+    }
+    // setIsLoading(false) will be called in fetchPages' finally block
+  };
+
+  const handleMoveUp = (index: number) => handleMove(index, 'up');
+  const handleMoveDown = (index: number) => handleMove(index, 'down');
+  // --- End Move Up/Down Handlers ---
+
 
   return (
     <div className="space-y-6">
@@ -222,31 +270,57 @@ const PagesTab: React.FC = () => {
           <p className="p-4 text-gray-500">No pages found.</p>
         ) : (
           <ul className="divide-y divide-gray-200">
-            {pages.map((page) => (
-              <li key={page.id} className="p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-medium text-gray-900">{page.title}</p>
-                  <p className="text-sm text-gray-500">/{page.slug}</p>
+            {pages.map((page, index) => ( // Added index here
+              <li key={page.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
+                <div className="flex items-center space-x-3">
+                   {/* Order Display (Optional but helpful) */}
+                   <span className="text-xs font-mono text-gray-400 w-6 text-right">{page.order}</span>
+                   {/* Page Info */}
+                   <div>
+                     <p className="font-medium text-gray-900">{page.title}</p>
+                     <p className="text-sm text-gray-500">/{page.slug}</p>
+                   </div>
                 </div>
-                <div className="space-x-2">
-                  <button
-                    onClick={() => startEditing(page)}
-                    disabled={isLoading}
-                    className="text-indigo-600 hover:text-indigo-900 text-sm font-medium disabled:opacity-50"
-                  >
-                    Edit
-                  </button>
-                  {/* Ensure page.id exists before calling handleDelete */}
-                  {page.id && (
-                    <button
-                      onClick={() => handleDelete(page.id!)} // Use non-null assertion as we checked page.id
-                      disabled={isLoading}
-                      className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
+                <div className="flex items-center space-x-1">
+                   {/* Move Up Button */}
+                   <button
+                     onClick={() => handleMoveUp(index)}
+                     disabled={isLoading || index === 0}
+                     className={`p-1 rounded ${isLoading || index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-100'}`}
+                     title="Move Up"
+                   >
+                     <ArrowUp size={18} />
+                   </button>
+                   {/* Move Down Button */}
+                   <button
+                     onClick={() => handleMoveDown(index)}
+                     disabled={isLoading || index === pages.length - 1}
+                     className={`p-1 rounded ${isLoading || index === pages.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-100'}`}
+                     title="Move Down"
+                   >
+                     <ArrowDown size={18} />
+                   </button>
+                   {/* Edit Button */}
+                   <button
+                     onClick={() => startEditing(page)}
+                     disabled={isLoading}
+                     className="p-1 rounded text-gray-500 hover:text-indigo-600 hover:bg-indigo-100 disabled:opacity-50"
+                     title="Edit"
+                   >
+                     <Edit size={18} />
+                   </button>
+                   {/* Delete Button */}
+                   {page.id && (
+                     <button
+                       onClick={() => handleDelete(page.id!)}
+                       disabled={isLoading}
+                       className="p-1 rounded text-gray-500 hover:text-red-600 hover:bg-red-100 disabled:opacity-50"
+                       title="Delete"
+                     >
+                       <Trash2 size={18} />
+                     </button>
+                   )}
+                 </div>
               </li>
             ))}
           </ul>
