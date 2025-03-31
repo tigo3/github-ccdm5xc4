@@ -347,7 +347,7 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/home">
       <Routes>
         <Route path="/" element={<MainSite />} />
         <Route path="/admin/login" element={<LoginPage />} />
