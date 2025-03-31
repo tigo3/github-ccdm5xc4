@@ -390,7 +390,9 @@ function App() {
       }
       try {
         const pagesCollection = collection(db, 'pages');
-        const pagesSnapshot = await getDocs(pagesCollection);
+        // Fetch pages ordered by the 'order' field
+        const pagesQuery = query(pagesCollection, orderBy('order', 'asc'));
+        const pagesSnapshot = await getDocs(pagesQuery);
         const pagesList = pagesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Page));
         setDynamicPages(pagesList);
         console.log("App.tsx: Fetched dynamic pages:", pagesList);
