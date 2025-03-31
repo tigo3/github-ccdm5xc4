@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Added useCallback, useMemo
+// Import ReactQuill and its CSS
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; // Import Quill styles (or quill.bubble.css)
+
 // Import necessary types and Firebase functions
 import { Page } from '../types'; // Use the defined Page type
 import { db } from '../../firebaseConfig';
@@ -229,18 +233,20 @@ const PagesTab: React.FC = () => {
         </div>
         <div>
           <label htmlFor="pageContent" className="block text-sm font-medium text-gray-700">Content</label>
-          <textarea
-            id="pageContent"
+          {/* Replace textarea with ReactQuill */}
+          <ReactQuill
+            theme="snow" // Use the "snow" theme for a standard toolbar
             value={pageContent}
-            onChange={(e) => setPageContent(e.target.value)}
-            rows={10}
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            placeholder="Enter page content here. You can use Markdown or HTML depending on how you render it."
+            onChange={setPageContent} // Directly set the HTML content string
+            modules={modules} // Use modules defined below
+            formats={formats} // Use formats defined below
+            className="mt-1 bg-white" // Add bg-white if needed for theme contrast
+            placeholder="Enter page content here..."
+            style={{ minHeight: '200px' }} // Ensure editor has some height
           />
-          {/* Consider replacing textarea with a Rich Text Editor component */}
         </div>
-        <div className="flex justify-end space-x-3">
+        {/* Add some padding top to separate buttons from editor */}
+        <div className="flex justify-end space-x-3 pt-4">
           {isEditing && (
             <button
               type="button"
@@ -329,5 +335,33 @@ const PagesTab: React.FC = () => {
     </div>
   );
 };
+
+// Define Quill Modules & Formats outside the component
+// Note: Basic undo/redo is often built-in (Ctrl+Z/Cmd+Z). Explicit buttons require more setup.
+const modules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }], // Headings H1-H6
+    ['bold', 'italic', 'underline', 'strike'], // Bold (<b>,<strong>), Italic (<i>,<em>), Underline (<u>), Strikethrough (<s>,<del>)
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }], // Numbered list (<ol>), Bullet list (<ul>)
+    ['blockquote'],                         // Blockquote (<blockquote>)
+    [{ 'color': [] }, { 'background': [] }],          // Text color, Background color
+    ['link'],                               // Hyperlink (<a>)
+    ['clean'],                              // Remove formatting
+  ],
+  // history: { // Enable history module for programmatic undo/redo if needed
+  //   delay: 2000,
+  //   maxStack: 500,
+  //   userOnly: true
+  // }
+};
+
+const formats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike', // Corresponds to <b>/<strong>, <i>/<em>, <u>, <s>/<del>
+  'list', 'bullet', // Corresponds to <ol>, <ul>
+  'blockquote',     // Corresponds to <blockquote>
+  'color', 'background', // Allows inline style="color:..." and style="background-color:..."
+  'link'            // Corresponds to <a>
+];
 
 export default PagesTab;
