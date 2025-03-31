@@ -14,6 +14,7 @@ import ServicesTab from './tabs/ServicesTab';
 import StyleEditorTab from './tabs/StyleEditorTab';
 import SocialLinksTab from './tabs/SocialLinksTab';
 import GeneralInfoTab from './tabs/GeneralInfoTab';
+import PagesTab from './tabs/PagesTab'; // Import the new PagesTab
 
 // Import Utilities and Types
 import { renderFields, getStaticSectionName, isValidTranslationKey } from './utils'; // Import necessary utils
@@ -99,6 +100,9 @@ const AdminDashboard: React.FC = () => {
     }
     if (activeTab === 'socialLinks') {
       return <SocialLinksTab />; // Assumes SocialLinksTab handles its own data/saving
+    }
+    if (activeTab === 'pages') {
+      return <PagesTab />; // Render PagesTab when active
     }
 
     // Dynamic Tabs - Use type guard from utils
@@ -198,10 +202,10 @@ const AdminDashboard: React.FC = () => {
           onClick={() => saveChanges()} // Call saveChanges from the hook
           className={`bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded focus:outline-none focus:shadow-outline transition-all duration-150 text-sm ${
             // Disable save button for tabs that save internally
-            activeTab === 'styleEditor' || activeTab === 'socialLinks' ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
+            activeTab === 'styleEditor' || activeTab === 'socialLinks' || activeTab === 'pages' ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
           }`}
-          disabled={activeTab === 'styleEditor' || activeTab === 'socialLinks'}
-          title={activeTab === 'styleEditor' || activeTab === 'socialLinks' ? "Changes are saved directly within this tab" : "Save text content changes"}
+          disabled={activeTab === 'styleEditor' || activeTab === 'socialLinks' || activeTab === 'pages'}
+          title={activeTab === 'styleEditor' || activeTab === 'socialLinks' || activeTab === 'pages' ? "Changes are saved directly within this tab" : "Save text content changes"}
         >
           Save Content Changes
         </button>

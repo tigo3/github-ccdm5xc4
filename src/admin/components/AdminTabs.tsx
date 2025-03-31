@@ -15,7 +15,7 @@ interface AdminTabsProps {
 }
 
 // Define the order of tabs
-const TAB_ORDER = ['generalInfo', 'socialLinks', 'projects', 'services', 'contact', 'styleEditor'];
+const TAB_ORDER = ['generalInfo', 'socialLinks', 'projects', 'services', 'pages', 'contact', 'styleEditor'];
 
 const AdminTabs: React.FC<AdminTabsProps> = ({
   activeTab,
@@ -34,6 +34,8 @@ const AdminTabs: React.FC<AdminTabsProps> = ({
             tabTitle = 'Style Editor';
           } else if (key === 'socialLinks') {
             tabTitle = 'Social Links';
+          } else if (key === 'pages') {
+            tabTitle = 'Pages'; // Add specific handling for 'pages'
           } else if (isValidTranslationKey(key)) {
             // Use the static helper function for dynamic tabs
             tabTitle = getStaticSectionName(key);

@@ -6,10 +6,12 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, onSnapshot, collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
 import { translations as defaultTranslations } from './translations';
+import { Page } from './admin/types'; // Import the Page type
 import LoginPage from './admin/LoginPage';
 import AdminDashboard from './admin/AdminDashboard';
 import { getProjectsData as defaultGetProjectsData } from './components/ProjectsSectionData';
 import Logo from './components/Logo';
+import DynamicPage from './pages/DynamicPage'; // Import from new location
 
 const ServicesSection = lazy(() => import('./components/ServicesSection'));
 const ProjectsSection = lazy(() => import('./components/ProjectsSection'));
@@ -75,7 +77,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children;
 };
 
-const MainSite = () => {
+// Define props for MainSite
+interface MainSiteProps {
+  dynamicPages: Page[];
+}
+
+const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
   const [siteTranslations, setSiteTranslations] = useState<TranslationsType>(defaultTranslations);
   const [isLoadingTranslations, setIsLoadingTranslations] = useState(true);
   const [isAdminLinkVisible, setIsAdminLinkVisible] = useState(false);
@@ -251,6 +258,20 @@ const MainSite = () => {
               ) : null;
             })}
           </div>
+                  {/* Render dynamic page links */}
+        {dynamicPages && dynamicPages.length > 0 && (
+          <nav className="mb-4 flex justify-center flex-wrap gap-x-4 gap-y-2 mt-8">
+            {dynamicPages.map(page => (
+              <Link
+                key={page.id}
+                to={`/${page.slug}`}
+                className="text-secondary hover:text-primary transition-colors text-sm"
+              >
+                {page.title}
+              </Link>
+            ))}
+          </nav>
+        )}
         </div>
       </header>
 
@@ -311,7 +332,13 @@ interface StyleData {
   sectionBgColor?: string;
 }
 
+// Removed DynamicPage component definition from here
+
 function App() {
+  const [dynamicPages, setDynamicPages] = useState<Page[]>([]);
+  const [loadingPages, setLoadingPages] = useState(true);
+
+  // Effect for loading styles
   useEffect(() => {
     if (!db) {
       console.error("App.tsx: Firestore not initialized correctly for loading styles.");
@@ -346,10 +373,56 @@ function App() {
     };
   }, []);
 
+  // Effect for loading dynamic pages
+  useEffect(() => {
+    setLoadingPages(true);
+    if (!db) {
+      console.error("App.tsx: Firestore not initialized correctly for loading pages.");
+      setLoadingPages(false);
+      return;
+    }
+    const fetchPages = async () => {
+      // Add check for db before using it
+      if (!db) {
+        console.error("App.tsx: Firestore not initialized correctly for loading pages.");
+        setLoadingPages(false);
+        return;
+      }
+      try {
+        const pagesCollection = collection(db, 'pages');
+        const pagesSnapshot = await getDocs(pagesCollection);
+        const pagesList = pagesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Page));
+        setDynamicPages(pagesList);
+        console.log("App.tsx: Fetched dynamic pages:", pagesList);
+      } catch (error) {
+        console.error("App.tsx: Error fetching dynamic pages:", error);
+      } finally {
+        setLoadingPages(false);
+      }
+    };
+
+    fetchPages();
+  }, []);
+
+
+  // Show loading indicator while pages are loading
+  if (loadingPages) {
+    return <div className="flex items-center justify-center min-h-screen bg-gray-900"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div></div>;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MainSite />} />
+        {/* Pass dynamicPages to MainSite */}
+        <Route path="/" element={<MainSite dynamicPages={dynamicPages} />} />
+        {/* Dynamically create routes for fetched pages */}
+        {dynamicPages.map(page => (
+          <Route
+            key={page.id}
+            path={`/${page.slug}`}
+            element={<DynamicPage page={page} />}
+          />
+        ))}
         <Route path="/admin/login" element={<LoginPage />} />
         <Route
           path="/admin/dashboard"
