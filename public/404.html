@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+      // Get the current path and query string
+      const path = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
+
+      // Construct the redirect URL. Adjust '/home/' if your repository name is different
+      // or if you are not deploying to a subdirectory.
+      // For t3h-uppdate.github.io deployed at root, use '/'
+      // For t3h-uppdate.github.io/home deployed to /home/, use '/home/'
+      const repoBasePath = '/home/'; // Adjust this based on your GitHub Pages setup (e.g., '/' or '/repo-name/')
+
+      // Redirect to index.html, preserving the path, search, and hash
+      // The session storage part helps prevent infinite loops if index.html itself 404s
+      sessionStorage.redirect = path + search + hash;
+      window.location.replace(repoBasePath); // Redirect to the base path (index.html)
+    </script>
+  </head>
+  <body>
+    If you are not redirected automatically, follow this <a id="redirect-link" href="/">link to the homepage</a>.
+    <script>
+      // Update the link href dynamically if needed, though the main script handles the redirect
+      document.getElementById('redirect-link').href = repoBasePath;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #377dc8; /* Default primary color */
+  --secondary-color: #0f3257; /* Default secondary color */
+  --title-color: #d7e3ee; /* Default title color */
+  --h3title-color: #d7e3ee; /* Default h3title color */
+  --text-color: #c6d3e2; /* Default text color */
+  --font-family: 'Noto Sans', sans-serif; /* Default font */
+  --section-bg-color: #374151; /* Gray-700 */
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    font-family: var(--font-family); /* Use the CSS variable */
+  }
+
+  
+  .sectionbg {
+    background-color: var(--section-bg-color);
+  }
+
+  .rtl {
+    direction: rtl;
+    font-family: 'Noto Naskh Arabic', sans-serif; /* Keep specific font for RTL */
+  }
+
+  .ltr {
+    direction: ltr;
+    /* font-family is now inherited from body */
+  }
+}
+
+
+@layer components {
+  .container {
+    @apply max-w-7xl mx-auto;
+  }
+}

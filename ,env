@@ -1,0 +1,11 @@
+# Place your StackBlitz environment variables here,
+# and they will be securely synced to your account.
+
+# Firebase Configuration
+VITE_FIREBASE_API_KEY="AIzaSyDr3k3DjPk8fNlgapY3Gge4ngXXuRifDjA"
+VITE_FIREBASE_AUTH_DOMAIN="tiger3homs-f3a5f.firebaseapp.com"
+VITE_FIREBASE_PROJECT_ID="tiger3homs-f3a5f"
+VITE_FIREBASE_STORAGE_BUCKET="tiger3homs-f3a5f.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID="565046427467"
+VITE_FIREBASE_APP_ID="1:565046427467:web:7188f79739eaa50473f2ce"
+VITE_FIREBASE_MEASUREMENT_ID="G-Z4TSDCDD4R"
