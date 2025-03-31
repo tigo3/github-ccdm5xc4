@@ -2,14 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/home/',
+  base: './',
   plugins: [react()],
-  server: {
-    port: 5173,
-    host: true,
-    hmr: {
-      overlay: true,
-    },
+  optimizeDeps: {
+    exclude: ['lucide-react'],
   },
   build: {
     sourcemap: true,
@@ -22,7 +18,5 @@ export default defineConfig({
       },
     },
   },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'firebase/app', 'firebase/auth'],
-  },
+
 });
