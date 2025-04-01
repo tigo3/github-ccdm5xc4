@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import { auth } from '../firebaseConfig';
+import { auth } from '../../config/firebaseConfig';
 
 // Password strength requirements
 const validatePassword = (password: string): boolean => {
@@ -28,13 +28,16 @@ const LoginPage: React.FC = () => {
   // Session timeout - 30 minutes
   useEffect(() => {
     const sessionTimeout = setTimeout(() => {
-      auth.signOut();
+      if (auth) { // Check if auth is not null
+        auth.signOut();
+      }
     }, 30 * 60 * 1000);
 
     return () => clearTimeout(sessionTimeout);
   }, []);
 
   useEffect(() => {
+    if (!auth) return; // Check if auth is not null
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         navigate('/admin/dashboard', { replace: true });
@@ -58,6 +61,12 @@ const LoginPage: React.FC = () => {
     // Validate password strength
     if (!validatePassword(password)) {
       setError('Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters');
+      setLoading(false);
+      return;
+    }
+
+    if (!auth) { // Check if auth is not null
+      setError('Authentication service is not available.');
       setLoading(false);
       return;
     }

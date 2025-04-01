@@ -1,4 +1,4 @@
-import { translations as defaultTranslations } from '../translations';
+import { translations as defaultTranslations } from '../config/translations';
 
 type TranslationsType = typeof defaultTranslations;
 // No longer need LanguageKey as we only use 'en'

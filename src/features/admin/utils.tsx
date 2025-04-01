@@ -1,5 +1,5 @@
 import React from 'react';
-import { translations as defaultTranslations } from '../translations'; // Import default translations
+import { translations as defaultTranslations } from '../../config/translations'; // Import default translations
 
 // Define the type for the keys of the 'en' object in translations based on the imported default
 type TranslationSectionKey = keyof typeof defaultTranslations.en;

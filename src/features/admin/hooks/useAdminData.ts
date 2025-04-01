@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { doc, setDoc, onSnapshot, updateDoc, deleteField } from "firebase/firestore";
-import { db } from '../../firebaseConfig'; // Adjust path as needed
-import { translations as defaultTranslations } from '../../translations'; // Adjust path as needed
+import { db } from '../../../config/firebaseConfig'; // Adjust path as needed
+import { translations as defaultTranslations } from '../../../config/translations'; // Adjust path as needed
 import { TranslationsType, LanguageKey, newProjectTemplate, ServiceItem } from '../types'; // Adjust path as needed
 import { updateNestedState } from '../utils'; // Adjust path as needed
 

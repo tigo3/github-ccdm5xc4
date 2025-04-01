@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Import useMemo
-import { db } from '../../firebaseConfig';
+import { db } from '../../../config/firebaseConfig';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore';
 import { Trash2, Edit, PlusCircle, Save, XCircle, ArrowUp, ArrowDown } from 'lucide-react';
 

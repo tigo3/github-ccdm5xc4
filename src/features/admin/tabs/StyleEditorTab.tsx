@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'; // Add useCallback
 import { doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc } from 'firebase/firestore'; // Add collection, getDocs, addDoc, deleteDoc
 import chroma from 'chroma-js'; // Import chroma-js
-import { db } from '../../firebaseConfig'; // Import Firestore instance
-import { translations } from '../../translations'; // Import translations object
+import { db } from '../../../config/firebaseConfig'; // Import Firestore instance - CORRECTED PATH
+import { translations } from '../../../config/translations'; // Import translations object - CORRECTED PATH
 
 // Update StyleData interface
 interface StyleData {

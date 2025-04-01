@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Rem
 // Import necessary types and Firebase functions
 import { Page } from '../types'; // Use the defined Page type
 import QuillEditor from '../components/QuillEditor'; // Import the new QuillEditor component
-import { db } from '../../firebaseConfig';
+import { db } from '../../../config/firebaseConfig';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore'; // Import Firestore functions, added writeBatch
 import { Trash2, Edit, Save, XCircle, ArrowUp, ArrowDown } from 'lucide-react'; // Added icons
 

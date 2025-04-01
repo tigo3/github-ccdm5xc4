@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from "firebase/auth";
-import { auth } from '../firebaseConfig'; // Keep auth import for logout
+import { auth } from '../../config/firebaseConfig'; // Keep auth import for logout
 
 // Import Hooks and Components
 import { useAdminData } from './hooks/useAdminData';

@@ -4,12 +4,12 @@ import { Github, Facebook, Mail, Instagram, Linkedin, Twitter, Icon as LucideIco
 import emailjs from 'emailjs-com';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, onSnapshot, collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { auth, db } from './firebaseConfig';
-import { translations as defaultTranslations } from './translations';
-import { Page } from './admin/types'; // Import the Page type
-import LoginPage from './admin/LoginPage';
-import AdminDashboard from './admin/AdminDashboard';
-import { getProjectsData as defaultGetProjectsData } from './components/ProjectsSectionData';
+import { auth, db } from './config/firebaseConfig';
+import { translations as defaultTranslations } from './config/translations';
+import { Page } from './features/admin/types'; // Import the Page type
+import LoginPage from './features/admin/LoginPage';
+import AdminDashboard from './features/admin/AdminDashboard';
+import { getProjectsData as defaultGetProjectsData } from './data/ProjectsSectionData';
 import Logo from './components/Logo';
 import DynamicPage from './pages/DynamicPage'; // Import from new location
 
