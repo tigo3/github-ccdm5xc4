@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Added useCallback, useMemo
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'; // Added useCallback, useMemo, useRef
 // Import ReactQuill and its CSS
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles (or quill.bubble.css)
@@ -24,6 +24,7 @@ const PagesTab: React.FC = () => {
 
   // Memoize collection ref
   const pagesCollectionRef = useMemo(() => db ? collection(db, 'pages') : null, []);
+  const quillRef = useRef<ReactQuill>(null); // Add ref for ReactQuill
 
   // Fetch pages from Firestore on component mount
   const fetchPages = useCallback(async () => {
@@ -197,6 +198,127 @@ const PagesTab: React.FC = () => {
   const handleMoveDown = (index: number) => handleMove(index, 'down');
   // --- End Move Up/Down Handlers ---
 
+  // Define Quill Modules & Formats INSIDE the component using useMemo
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'align': [] }],
+        [{ 'color': [] }, { 'background': [] }],
+        ['link', 'image', 'video'],
+        ['clean']
+      ],
+      handlers: {
+        image: function() { // Use 'function' to access Quill instance via 'this' if needed, or stick to ref
+          const quill = quillRef.current?.getEditor();
+          if (!quill) {
+            console.error("Quill editor instance not found.");
+            return;
+          }
+
+          const range = quill.getSelection(true); // Save the current selection range
+          if (!range) return; // Should not happen if toolbar is clicked, but good practice
+
+          // Access the tooltip module - requires 'any' type assertion as Quill types might not expose everything
+          const tooltip = (quill as any).theme.tooltip;
+
+          // Store the original 'save' and 'action' handlers to restore later if needed,
+          // though Quill might handle this internally when hiding.
+          const originalSave = tooltip.save;
+          const originalAction = tooltip.action;
+
+          // Show the tooltip in 'edit' mode. It might default to link input.
+          // We'll customize it right after showing.
+          tooltip.edit(); // Show the tooltip
+
+          // Find the input element within the tooltip
+          const input = tooltip.textbox as HTMLInputElement;
+          if (!input) {
+              console.error("Tooltip input element not found.");
+              tooltip.hide(); // Hide if we can't proceed
+              return;
+          }
+
+          // Customize the input for image URL
+          input.value = ''; // Clear previous value
+          input.setAttribute('placeholder', 'Enter image URL');
+          // Optional: Add specific data attribute if needed for styling or identification
+          input.setAttribute('data-mode', 'image');
+
+          // Define the action when the 'Save' button is clicked or Enter is pressed
+          const saveHandler = () => {
+            const url = input.value;
+            if (url) {
+              quill.insertEmbed(range.index, 'image', url, 'user');
+              tooltip.hide(); // Hide tooltip after inserting
+            } else {
+              tooltip.hide(); // Hide if no URL entered
+            }
+            // Restore original handlers (optional, Quill might do this)
+            tooltip.save = originalSave;
+            tooltip.action = originalAction;
+            // Remove the specific listeners we added
+            input.removeEventListener('keydown', keydownHandler);
+            tooltip.root.querySelector('a.ql-action')?.removeEventListener('click', saveHandler);
+          };
+
+          // Handle Enter key press in the input
+          const keydownHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              saveHandler();
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              tooltip.hide();
+              // Restore original handlers (optional)
+              tooltip.save = originalSave;
+              tooltip.action = originalAction;
+              // Remove listeners
+              input.removeEventListener('keydown', keydownHandler);
+              tooltip.root.querySelector('a.ql-action')?.removeEventListener('click', saveHandler);
+            }
+          };
+
+          // Override the tooltip's save action temporarily
+          tooltip.save = saveHandler;
+
+          // Add event listener for Enter key on the input
+          // Remove previous listener first to avoid duplicates if clicked multiple times
+          input.removeEventListener('keydown', keydownHandler);
+          input.addEventListener('keydown', keydownHandler);
+
+          // Add event listener for the Save button click
+          const saveButton = tooltip.root.querySelector('a.ql-action');
+          if (saveButton) {
+            // Remove previous listener first
+            saveButton.removeEventListener('click', saveHandler);
+            saveButton.addEventListener('click', saveHandler);
+          } else {
+            console.warn("Tooltip save button (a.ql-action) not found.");
+          }
+
+          // Focus the input field
+          input.focus();
+        }
+      }
+    }
+    // history: { ... } // Optional history config
+  }), []); // Empty dependency array means this runs once
+
+  const formats = useMemo(() => [ // Also memoize formats
+    'header', 'font', 'size', 'bold', 'italic', 'underline', 'strike',
+    'blockquote', 'code-block', 'list', 'bullet', 'script', 'indent',
+    'direction', 'align', 'color', 'background', 'link', 'image', 'video'
+  ], []);
+
 
   return (
     <div className="space-y-6">
@@ -238,8 +360,9 @@ const PagesTab: React.FC = () => {
             theme="snow" // Use the "snow" theme for a standard toolbar
             value={pageContent}
             onChange={setPageContent} // Directly set the HTML content string
-            modules={modules} // Use modules defined below
-            formats={formats} // Use formats defined below
+            ref={quillRef} // Assign the ref here
+            modules={modules} // Use the memoized modules
+            formats={formats} // Use the memoized formats
             className="mt-1 bg-white" // Add bg-white if needed for theme contrast
             placeholder="Enter page content here..."
             style={{ minHeight: '200px' }} // Ensure editor has some height
@@ -335,57 +458,5 @@ const PagesTab: React.FC = () => {
     </div>
   );
 };
-
-// Define Quill Modules & Formats outside the component for performance
-// Note: Image/Video upload/handling requires additional custom handlers.
-const modules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }], // Headings
-    [{ 'font': [] }],                         // Font family
-    [{ 'size': ['small', false, 'large', 'huge'] }], // Font size
-
-    ['bold', 'italic', 'underline', 'strike'],        // Text emphasis
-    ['blockquote', 'code-block'],                     // Blocks
-
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],     // Lists
-    [{ 'script': 'sub'}, { 'script': 'super' }],      // Subscript/superscript
-    [{ 'indent': '-1'}, { 'indent': '+1' }],          // Indentation
-    [{ 'direction': 'rtl' }],                         // Text direction (optional)
-    [{ 'align': [] }],                                // Text alignment
-
-    [{ 'color': [] }, { 'background': [] }],          // Color pickers
-
-    ['link', 'image', 'video'],                       // Embeds (image/video require handlers)
-
-    ['clean']                                         // Remove formatting
-  ],
-  // Consider adding handlers for image/video uploads if needed
-  // history: { // Optional: Configure undo/redo history
-  //   delay: 2000,
-  //   maxStack: 500,
-  //   userOnly: true
-  // }
-};
-
-const formats = [
-  // Headers & Font
-  'header', 'font', 'size',
-  // Text Emphasis
-  'bold', 'italic', 'underline', 'strike',
-  // Blocks
-  'blockquote', 'code-block',
-  // Lists
-  'list', 'bullet',
-  // Script & Indent
-  'script', 'indent',
-  // Text Direction & Alignment
-  'direction', 'align',
-  // Color
-  'color', 'background',
-  // Embeds
-  'link', 'image', 'video',
-  // Clean (handled internally)
-];
-
 
 export default PagesTab;
