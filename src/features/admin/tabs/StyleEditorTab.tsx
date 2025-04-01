@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc } from 'fir
 import chroma from 'chroma-js'; // Import chroma-js
 import { db } from '../../../config/firebaseConfig'; // Import Firestore instance - CORRECTED PATH
 import { translations } from '../../../config/translations'; // Import translations object - CORRECTED PATH
+import ThemeSwitcher from '../components/ThemeSwitcher'; // Import the ThemeSwitcher component
 
 // Update StyleData interface
 interface StyleData {
@@ -783,9 +784,19 @@ const StyleEditorTab: React.FC<StyleEditorTabProps> = () => {
       </div> {/* End Column 1 */}
 
 
-      {/* Column 2: Theme History */}
+      {/* Column 2: Theme Switcher and History */}
       <div className="md:col-span-1 space-y-4"> {/* Theme history takes 1 column */}
-        <h4 className="text-lg font-medium mb-4">Theme History</h4>
+        
+        {/* Global Theme Switcher */}
+        <div className="mb-4">
+          <h4 className="text-lg font-medium mb-2">Global Theme</h4>
+          <ThemeSwitcher />
+          <p className="text-xs text-gray-500 mt-1">Select the overall application theme (Light, Dark, etc.).</p>
+        </div>
+
+        <hr className="my-4" /> {/* Add a separator */}
+
+        <h4 className="text-lg font-medium mb-4">Custom Theme Management</h4>
 
         {/* Save Current Theme Section */}
         <div className="p-4 border border-gray-200 rounded-md bg-gray-50">

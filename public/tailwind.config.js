@@ -1,23 +1,33 @@
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+// tailwind.config.js
+module.exports = {
+  darkMode: 'class', // Enable class-based dark mode
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
-        // Corrected variable names to match the theme plugin
-        primary: 'var(--color-primary)', 
-        secondary: 'var(--color-secondary)',
-        // Assuming these are separate or handled differently
-        titel: 'var(--title-color)', 
-        h3titel: 'var(--h3title-color)', 
-        text: 'var(--color-text)', 
-        // You might want to add mappings for other theme variables here if needed, e.g.:
-        // background: 'var(--color-background)',
-        // 'background-secondary': 'var(--color-background-secondary)',
-        // 'text-secondary': 'var(--color-text-secondary)',
-      },
-      fontFamily: {
-        sans: ['var(--font-family)', 'sans-serif'], // Use CSS variable, fallback to sans-serif
+        // Light theme colors (default)
+        primary: {
+          DEFAULT: '#3b82f6', // blue-500
+          hover: '#2563eb', // blue-600
+          light: '#93c5fd', // blue-300
+          dark: '#1d4ed8', // blue-700
+        },
+        secondary: {
+          DEFAULT: '#6b7280', // gray-500
+          hover: '#4b5563', // gray-600
+        },
+        background: {
+          DEFAULT: '#ffffff',
+          secondary: '#f3f4f6', // gray-100
+        },
+        text: {
+          DEFAULT: '#1f2937', // gray-800
+          secondary: '#4b5563', // gray-600
+          light: '#9ca3af', // gray-400
+        },
       },
     },
   },

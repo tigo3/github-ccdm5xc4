@@ -1,4 +1,5 @@
 import React from 'react';
+// Removed ThemeSwitcher import
 
 interface AdminHeaderProps {
   resetToDefaults: () => Promise<void>;
@@ -14,7 +15,9 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 pb-4 border-b border-gray-300 gap-4">
       <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-      <div className="flex gap-2 flex-wrap justify-center sm:justify-end">
+      {/* Reverted container */}
+      <div className="flex gap-2 flex-wrap justify-center sm:justify-end"> 
+        {/* Removed ThemeSwitcher component */}
         <button
           onClick={resetToDefaults}
           className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-sm transition-colors"
