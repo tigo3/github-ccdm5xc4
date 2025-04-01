@@ -5,7 +5,20 @@ import { db } from '../../../config/firebaseConfig'; // Import Firestore instanc
 import { translations } from '../../../config/translations'; // Import translations object - CORRECTED PATH
 import ThemeSwitcher from '../components/ThemeSwitcher'; // Import the ThemeSwitcher component
 
-// Update StyleData interface
+// Define the structure for theme color data passed from ThemeSwitcher
+// (Should match the one defined in ThemeSwitcher.tsx)
+interface ThemeData {
+  primaryColor: string;
+  secondaryColor: string;
+  titleColor: string;
+  h3TitleColor: string;
+  textColor: string;
+  backgroundFromColor: string;
+  backgroundToColor: string;
+  sectionBgColor: string;
+}
+
+// Update StyleData interface (used for saving/loading)
 interface StyleData {
   primaryColor: string;
   secondaryColor: string;
@@ -62,6 +75,22 @@ const StyleEditorTab: React.FC<StyleEditorTabProps> = () => {
   const [savedThemes, setSavedThemes] = useState<SavedTheme[]>([]); // State for saved themes
   const [newThemeName, setNewThemeName] = useState(''); // State for new theme name input
   const [isLoadingThemes, setIsLoadingThemes] = useState(true); // Loading state for themes
+
+  // --- Handler for Global Theme Selection ---
+  const handleGlobalThemeSelect = (themeData: ThemeData) => {
+    console.log("Applying global theme to editor:", themeData);
+    // Update the state variables of StyleEditorTab with the selected theme's data
+    setPrimaryColor(themeData.primaryColor);
+    setSecondaryColor(themeData.secondaryColor);
+    setTitleColor(themeData.titleColor);
+    setH3TitleColor(themeData.h3TitleColor);
+    setTextColor(themeData.textColor);
+    setBackgroundFromColor(themeData.backgroundFromColor);
+    setBackgroundToColor(themeData.backgroundToColor);
+    setSectionBgColor(themeData.sectionBgColor);
+    // Note: Font family is not included in ThemeData currently, so it's not updated here.
+  };
+  // --- End Handler ---
 
   // --- Optimized Input Change Handlers ---
   const isValidHexColor = (color: string): boolean => /^#[0-9A-F]{6}$/i.test(color);
@@ -790,8 +819,9 @@ const StyleEditorTab: React.FC<StyleEditorTabProps> = () => {
         {/* Global Theme Switcher */}
         <div className="mb-4">
           <h4 className="text-lg font-medium mb-2">Global Theme</h4>
-          <ThemeSwitcher />
-          <p className="text-xs text-gray-500 mt-1">Select the overall application theme (Light, Dark, etc.).</p>
+          {/* Pass the handler function down as a prop */}
+          <ThemeSwitcher onThemeSelect={handleGlobalThemeSelect} /> 
+          <p className="text-xs text-gray-500 mt-1">Select the overall application theme (Light, Dark, etc.). This will update the editor fields below.</p>
         </div>
 
         <hr className="my-4" /> {/* Add a separator */}
