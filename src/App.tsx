@@ -12,6 +12,7 @@ import AdminDashboard from './features/admin/AdminDashboard';
 import { getProjectsData as defaultGetProjectsData } from './data/ProjectsSectionData';
 import Logo from './components/Logo';
 import DynamicPage from './pages/DynamicPage'; // Import from new location
+import ScrollToTopButton from './components/ScrollToTopButton'; // Import the new component
 
 const ServicesSection = lazy(() => import('./components/ServicesSection'));
 const ProjectsSection = lazy(() => import('./components/ProjectsSection'));
@@ -436,6 +437,7 @@ function App() {
         />
         <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
       </Routes>
+      <ScrollToTopButton /> {/* Add the button here */}
     </BrowserRouter>
   );
 }
