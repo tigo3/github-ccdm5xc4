@@ -1,10 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'; // Added useCallback, useMemo, useRef
-// Import ReactQuill and its CSS
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles (or quill.bubble.css)
-
+import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Removed useRef
 // Import necessary types and Firebase functions
 import { Page } from '../types'; // Use the defined Page type
+import QuillEditor from '../components/QuillEditor'; // Import the new QuillEditor component
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore'; // Import Firestore functions, added writeBatch
 import { Trash2, Edit, Save, XCircle, ArrowUp, ArrowDown } from 'lucide-react'; // Added icons
@@ -24,7 +21,7 @@ const PagesTab: React.FC = () => {
 
   // Memoize collection ref
   const pagesCollectionRef = useMemo(() => db ? collection(db, 'pages') : null, []);
-  const quillRef = useRef<ReactQuill>(null); // Add ref for ReactQuill
+  // Removed quillRef
 
   // Fetch pages from Firestore on component mount
   const fetchPages = useCallback(async () => {
@@ -48,11 +45,13 @@ const PagesTab: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [pagesCollectionRef]); // Add dependency
+   }, [pagesCollectionRef]); // Add dependency
 
   useEffect(() => {
     fetchPages();
   }, [fetchPages]); // Use the useCallback version
+
+  // Removed the useEffect hook for preventing page jump (moved to QuillEditor)
 
   // Implement form submission logic (add/update)
   const handleSubmit = async (e: React.FormEvent) => {
@@ -198,127 +197,7 @@ const PagesTab: React.FC = () => {
   const handleMoveDown = (index: number) => handleMove(index, 'down');
   // --- End Move Up/Down Handlers ---
 
-  // Define Quill Modules & Formats INSIDE the component using useMemo
-  const modules = useMemo(() => ({
-    toolbar: {
-      container: [
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'font': [] }],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'script': 'sub'}, { 'script': 'super' }],
-        [{ 'indent': '-1'}, { 'indent': '+1' }],
-        [{ 'direction': 'rtl' }],
-        [{ 'align': [] }],
-        [{ 'color': [] }, { 'background': [] }],
-        ['link', 'image', 'video'],
-        ['clean']
-      ],
-      handlers: {
-        image: function() { // Use 'function' to access Quill instance via 'this' if needed, or stick to ref
-          const quill = quillRef.current?.getEditor();
-          if (!quill) {
-            console.error("Quill editor instance not found.");
-            return;
-          }
-
-          const range = quill.getSelection(true); // Save the current selection range
-          if (!range) return; // Should not happen if toolbar is clicked, but good practice
-
-          // Access the tooltip module - requires 'any' type assertion as Quill types might not expose everything
-          const tooltip = (quill as any).theme.tooltip;
-
-          // Store the original 'save' and 'action' handlers to restore later if needed,
-          // though Quill might handle this internally when hiding.
-          const originalSave = tooltip.save;
-          const originalAction = tooltip.action;
-
-          // Show the tooltip in 'edit' mode. It might default to link input.
-          // We'll customize it right after showing.
-          tooltip.edit(); // Show the tooltip
-
-          // Find the input element within the tooltip
-          const input = tooltip.textbox as HTMLInputElement;
-          if (!input) {
-              console.error("Tooltip input element not found.");
-              tooltip.hide(); // Hide if we can't proceed
-              return;
-          }
-
-          // Customize the input for image URL
-          input.value = ''; // Clear previous value
-          input.setAttribute('placeholder', 'Enter image URL');
-          // Optional: Add specific data attribute if needed for styling or identification
-          input.setAttribute('data-mode', 'image');
-
-          // Define the action when the 'Save' button is clicked or Enter is pressed
-          const saveHandler = () => {
-            const url = input.value;
-            if (url) {
-              quill.insertEmbed(range.index, 'image', url, 'user');
-              tooltip.hide(); // Hide tooltip after inserting
-            } else {
-              tooltip.hide(); // Hide if no URL entered
-            }
-            // Restore original handlers (optional, Quill might do this)
-            tooltip.save = originalSave;
-            tooltip.action = originalAction;
-            // Remove the specific listeners we added
-            input.removeEventListener('keydown', keydownHandler);
-            tooltip.root.querySelector('a.ql-action')?.removeEventListener('click', saveHandler);
-          };
-
-          // Handle Enter key press in the input
-          const keydownHandler = (e: KeyboardEvent) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              saveHandler();
-            } else if (e.key === 'Escape') {
-              e.preventDefault();
-              tooltip.hide();
-              // Restore original handlers (optional)
-              tooltip.save = originalSave;
-              tooltip.action = originalAction;
-              // Remove listeners
-              input.removeEventListener('keydown', keydownHandler);
-              tooltip.root.querySelector('a.ql-action')?.removeEventListener('click', saveHandler);
-            }
-          };
-
-          // Override the tooltip's save action temporarily
-          tooltip.save = saveHandler;
-
-          // Add event listener for Enter key on the input
-          // Remove previous listener first to avoid duplicates if clicked multiple times
-          input.removeEventListener('keydown', keydownHandler);
-          input.addEventListener('keydown', keydownHandler);
-
-          // Add event listener for the Save button click
-          const saveButton = tooltip.root.querySelector('a.ql-action');
-          if (saveButton) {
-            // Remove previous listener first
-            saveButton.removeEventListener('click', saveHandler);
-            saveButton.addEventListener('click', saveHandler);
-          } else {
-            console.warn("Tooltip save button (a.ql-action) not found.");
-          }
-
-          // Focus the input field
-          input.focus();
-        }
-      }
-    }
-    // history: { ... } // Optional history config
-  }), []); // Empty dependency array means this runs once
-
-  const formats = useMemo(() => [ // Also memoize formats
-    'header', 'font', 'size', 'bold', 'italic', 'underline', 'strike',
-    'blockquote', 'code-block', 'list', 'bullet', 'script', 'indent',
-    'direction', 'align', 'color', 'background', 'link', 'image', 'video'
-  ], []);
-
+  // Removed Quill modules and formats (moved to QuillEditor)
 
   return (
     <div className="space-y-6">
@@ -353,19 +232,14 @@ const PagesTab: React.FC = () => {
             title="Slug can only contain lowercase letters, numbers, and hyphens."
           />
         </div>
-        <div>
+        <div className="relative quill-editor-wrapper">
           <label htmlFor="pageContent" className="block text-sm font-medium text-gray-700">Content</label>
-          {/* Replace textarea with ReactQuill */}
-          <ReactQuill
-            theme="snow" // Use the "snow" theme for a standard toolbar
+          {/* Use the new QuillEditor component */}
+          <QuillEditor
             value={pageContent}
-            onChange={setPageContent} // Directly set the HTML content string
-            ref={quillRef} // Assign the ref here
-            modules={modules} // Use the memoized modules
-            formats={formats} // Use the memoized formats
-            className="mt-1 bg-white" // Add bg-white if needed for theme contrast
+            onChange={setPageContent}
             placeholder="Enter page content here..."
-            style={{ minHeight: '200px' }} // Ensure editor has some height
+            // style and className are handled by the QuillEditor component defaults
           />
         </div>
         {/* Add some padding top to separate buttons from editor */}

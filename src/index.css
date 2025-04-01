@@ -4,6 +4,51 @@
 @tailwind components;
 @tailwind utilities;
 
+.quill-editor-wrapper {
+  position: relative; /* Keep relative positioning */
+  /* overflow: clip; REMOVED */
+}
+
+/* Make Quill Toolbar Sticky within its wrapper */
+.quill-editor-wrapper .ql-toolbar.ql-snow { /* Scope to the wrapper */
+  position: sticky; /* Re-apply sticky */
+  top: 0; /* Stick to the top of the wrapper */
+  background-color: white;
+  z-index: 100; /* Keep high z-index */
+  border-bottom: 1px solid #ccc;
+}
+
+/* Revert container to default */
+.quill-editor-wrapper .ql-container.ql-snow { /* Scope to the wrapper */
+  /* max-height: 400px; REMOVED */
+  /* overflow-y: auto; REMOVED */
+  /* border-top: none; REMOVED */
+  /* overflow-anchor: none; REMOVED */
+}
+
+/* Ensure Quill's own popups (like link editor) also have high z-index */
+.ql-tooltip {
+  z-index: 101 !important; /* Make sure tooltips appear above the sticky toolbar */
+}
+
+/* Ensure Quill pickers (dropdowns) work well with sticky toolbar */
+.quill-editor-wrapper .ql-picker-options {
+  position: absolute; /* Keep absolute positioning relative to toolbar */
+  z-index: 102; /* Ensure options appear above toolbar and tooltips */
+  background-color: white; /* Ensure background for visibility */
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* Add margin-top to prevent potential overlap/jump if needed */
+  /* margin-top: 2px; */
+}
+
+/* Remove relative positioning from pickers */
+/* .quill-editor-wrapper .ql-toolbar.ql-snow .ql-picker { */
+  /* position: relative; REMOVED */
+  /* z-index: 101; REMOVED */
+/* } */
+
+
 :root {
   --primary-color: #377dc8; /* Default primary color */
   --secondary-color: #0f3257; /* Default secondary color */
