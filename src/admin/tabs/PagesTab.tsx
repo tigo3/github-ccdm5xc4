@@ -336,19 +336,31 @@ const PagesTab: React.FC = () => {
   );
 };
 
-// Define Quill Modules & Formats outside the component
-// Note: Basic undo/redo is often built-in (Ctrl+Z/Cmd+Z). Explicit buttons require more setup.
+// Define Quill Modules & Formats outside the component for performance
+// Note: Image/Video upload/handling requires additional custom handlers.
 const modules = {
   toolbar: [
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }], // Headings H1-H6
-    ['bold', 'italic', 'underline', 'strike'], // Bold (<b>,<strong>), Italic (<i>,<em>), Underline (<u>), Strikethrough (<s>,<del>)
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }], // Numbered list (<ol>), Bullet list (<ul>)
-    ['blockquote'],                         // Blockquote (<blockquote>)
-    [{ 'color': [] }, { 'background': [] }],          // Text color, Background color
-    ['link'],                               // Hyperlink (<a>)
-    ['clean'],                              // Remove formatting
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }], // Headings
+    [{ 'font': [] }],                         // Font family
+    [{ 'size': ['small', false, 'large', 'huge'] }], // Font size
+
+    ['bold', 'italic', 'underline', 'strike'],        // Text emphasis
+    ['blockquote', 'code-block'],                     // Blocks
+
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],     // Lists
+    [{ 'script': 'sub'}, { 'script': 'super' }],      // Subscript/superscript
+    [{ 'indent': '-1'}, { 'indent': '+1' }],          // Indentation
+    [{ 'direction': 'rtl' }],                         // Text direction (optional)
+    [{ 'align': [] }],                                // Text alignment
+
+    [{ 'color': [] }, { 'background': [] }],          // Color pickers
+
+    ['link', 'image', 'video'],                       // Embeds (image/video require handlers)
+
+    ['clean']                                         // Remove formatting
   ],
-  // history: { // Enable history module for programmatic undo/redo if needed
+  // Consider adding handlers for image/video uploads if needed
+  // history: { // Optional: Configure undo/redo history
   //   delay: 2000,
   //   maxStack: 500,
   //   userOnly: true
@@ -356,12 +368,24 @@ const modules = {
 };
 
 const formats = [
-  'header',
-  'bold', 'italic', 'underline', 'strike', // Corresponds to <b>/<strong>, <i>/<em>, <u>, <s>/<del>
-  'list', 'bullet', // Corresponds to <ol>, <ul>
-  'blockquote',     // Corresponds to <blockquote>
-  'color', 'background', // Allows inline style="color:..." and style="background-color:..."
-  'link'            // Corresponds to <a>
+  // Headers & Font
+  'header', 'font', 'size',
+  // Text Emphasis
+  'bold', 'italic', 'underline', 'strike',
+  // Blocks
+  'blockquote', 'code-block',
+  // Lists
+  'list', 'bullet',
+  // Script & Indent
+  'script', 'indent',
+  // Text Direction & Alignment
+  'direction', 'align',
+  // Color
+  'color', 'background',
+  // Embeds
+  'link', 'image', 'video',
+  // Clean (handled internally)
 ];
+
 
 export default PagesTab;

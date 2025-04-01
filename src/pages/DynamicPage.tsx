@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Page } from '../admin/types'; // Import the Page type
+import 'react-quill/dist/quill.snow.css'; // Import Quill styles to apply formatting
 
 // Simple component to render dynamic page content
 const DynamicPage: React.FC<{ page: Page | undefined }> = ({ page }) => {
@@ -29,9 +30,14 @@ const DynamicPage: React.FC<{ page: Page | undefined }> = ({ page }) => {
     >
       <div className="container mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold mb-6" style={{ color: 'var(--title-color)' }}>{page.title}</h1>
-        {/* Render content - WARNING: If content is HTML, use a sanitizer or trusted source */}
-        {/* Added prose styles for better default text formatting */}
-        <div className="prose prose-invert max-w-none text-text" dangerouslySetInnerHTML={{ __html: page.content }}></div>
+        {/* Render content using Quill's CSS classes */}
+        {/* WARNING: Ensure page.content is sanitized if it comes from untrusted sources */}
+        <div className="prose prose-invert max-w-none text-text"> {/* Keep prose for overall page styling */}
+          {/* Apply ql-snow and ql-editor for Quill styles */}
+          <div className="ql-snow">
+            <div className="ql-editor" dangerouslySetInnerHTML={{ __html: page.content }}></div>
+          </div>
+        </div>
         {/* Alternative for plain text: <p className="text-lg leading-relaxed text-text">{page.content}</p> */}
         <div className="mt-12 text-center">
             <Link to="/" className="text-blue-400 hover:text-blue-300 underline">
