@@ -1,0 +1,44 @@
+/* theme.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply transition-colors duration-200 ease-in-out;
+  }
+  
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--color-primary)] 
+           hover:bg-[var(--color-primary-hover)] 
+           text-white 
+           font-bold 
+           py-2 
+           px-4 
+           rounded;
+  }
+  
+  .btn-secondary {
+    @apply bg-[var(--color-secondary)] 
+           hover:bg-[var(--color-secondary-hover)] 
+           text-white 
+           font-bold 
+           py-2 
+           px-4 
+           rounded;
+  }
+  
+  .card {
+    @apply bg-[var(--color-background-secondary)]
+           rounded-lg
+           p-6
+           shadow-md;
+  }
+}
