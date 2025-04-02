@@ -9,9 +9,7 @@ import {
   Settings, 
   LogOut,
   Image,
-  Search,
   ChevronDown,
-  Bell,
   User,
   Menu, // Added Menu icon
   Eye,
@@ -47,7 +45,6 @@ const AdminDashboard: React.FC = () => {
   });
 
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // md breakpoint
 
   // Effect to handle window resize
@@ -230,8 +227,6 @@ const AdminDashboard: React.FC = () => {
               handleInputChange={handleInputChange}
               editingPath={editingPath}
               setEditingPath={setEditingPath}
-              handleDeleteItem={handleDeleteItem}
-              renderFields={renderFields}
               getStaticSectionName={getStaticSectionName}
             />
           ) : (
@@ -278,47 +273,11 @@ const AdminDashboard: React.FC = () => {
             >
               <Menu size={24} />
             </button>
-            {/* Search Input - Hidden on small screens */}
-            <div className="relative hidden md:block">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
-            </div>
+            {/* Search Input Removed */}
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="text-gray-500 hover:text-gray-700 relative"
-              >
-                <Bell size={20} />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  3
-                </span>
-              </button>
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 border border-gray-200">
-                  <div className="px-4 py-2 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-700">Notifications</h3>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer">
-                      <p className="text-sm text-gray-800">New comment on your post</p>
-                      <p className="text-xs text-gray-500">2 minutes ago</p>
-                    </div>
-                    <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer">
-                      <p className="text-sm text-gray-800">Your page was viewed 100 times</p>
-                      <p className="text-xs text-gray-500">1 hour ago</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Notifications Removed */}
 
             {/* User Menu */}
             <div className="relative">
