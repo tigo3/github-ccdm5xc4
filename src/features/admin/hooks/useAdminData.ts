@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { doc, setDoc, onSnapshot, updateDoc, deleteField } from "firebase/firestore";
 import { db } from '../../../config/firebaseConfig'; // Adjust path as needed
 import { translations as defaultTranslations } from '../../../config/translations'; // Adjust path as needed
+import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
 import { TranslationsType, LanguageKey, newProjectTemplate, ServiceItem } from '../types'; // Adjust path as needed
 import { updateNestedState } from '../utils'; // Adjust path as needed
 
@@ -19,7 +20,8 @@ export const useAdminData = () => {
   // Initialize with default translations, will be overwritten by Firebase data
   const [translations, setTranslations] = useState<TranslationsType>(defaultTranslations);
   const [isLoading, setIsLoading] = useState(true); // Add loading state
-  const [saveStatus, setSaveStatus] = useState('');
+  const [saveStatus, setSaveStatus] = useState(''); // Keep for potential non-toast status
+  const { showToast } = useNotifications(); // Get the toast function
 
   // Effect to fetch data from Firestore on mount and listen for changes
   useEffect(() => {
@@ -139,12 +141,17 @@ export const useAdminData = () => {
       const translationsDocRef = doc(db, TRANSLATIONS_DOC_PATH);
       // Revert to using merge: true for general saves
       await setDoc(translationsDocRef, data, { merge: true });
-      setSaveStatus('Content changes saved successfully!');
-      setTimeout(() => setSaveStatus(''), 3000);
+      // setSaveStatus('Content changes saved successfully!'); // Replaced by toast
+      showToast('Content changes saved successfully!', 'success');
+      setSaveStatus(''); // Clear any previous status
     } catch (error) {
       console.error("Failed to save translations to Firestore:", error);
-      setSaveStatus('Error saving content changes.');
-      setTimeout(() => setSaveStatus(''), 5000); // Keep error message longer
+      // setSaveStatus('Error saving content changes.'); // Replaced by toast
+      showToast('Error saving content changes.', 'error');
+      setSaveStatus(''); // Clear any previous status
+    } finally {
+      // Clear loading status if needed, though setSaveStatus might be enough
+      // setIsLoading(false); // Example if loading state was tied to save
     }
   };
 
@@ -162,12 +169,13 @@ export const useAdminData = () => {
         [fieldPath]: deleteField() // Use the deleteField() sentinel function
       });
       // Don't set status here, let onSnapshot update trigger potential status changes or rely on UI update
-      // setSaveStatus('Item deleted successfully!'); // Optional: if needed
-      // setTimeout(() => setSaveStatus(''), 3000);
+      showToast('Item deleted successfully!', 'success'); // Show success toast
+      setSaveStatus(''); // Clear status
     } catch (error) {
       console.error("Failed to delete item from Firestore:", error);
-      setSaveStatus('Error deleting item.');
-      setTimeout(() => setSaveStatus(''), 5000);
+      // setSaveStatus('Error deleting item.'); // Replaced by toast
+      showToast('Error deleting item.', 'error');
+      setSaveStatus(''); // Clear status
     }
   };
 
@@ -209,12 +217,13 @@ export const useAdminData = () => {
                 'services.list': updatedServicesList
             });
             // onSnapshot listener will automatically update the local state and UI
-            // setSaveStatus('Service item deleted.'); // Optional status update if needed
-            // setTimeout(() => setSaveStatus(''), 3000);
+            showToast('Service item deleted.', 'success'); // Show success toast
+            setSaveStatus(''); // Clear status
         } catch (error) {
             console.error("Failed to update services list in Firestore:", error);
-            setSaveStatus('Error deleting service item.');
-            setTimeout(() => setSaveStatus(''), 5000);
+            // setSaveStatus('Error deleting service item.'); // Replaced by toast
+            showToast('Error deleting service item.', 'error');
+            setSaveStatus(''); // Clear status
         }
 
     } else {
@@ -254,12 +263,14 @@ export const useAdminData = () => {
         const translationsDocRef = doc(db, TRANSLATIONS_DOC_PATH);
         await setDoc(translationsDocRef, dataToSave); // Overwrite the document
         // The onSnapshot listener should automatically update the local state
-        setSaveStatus('Text content sections reset to defaults.');
-        setTimeout(() => setSaveStatus(''), 3000);
+        // setSaveStatus('Text content sections reset to defaults.'); // Replaced by toast
+        showToast('Text content sections reset to defaults.', 'success');
+        setSaveStatus(''); // Clear status
       } catch (error) {
         console.error("Failed to reset translations in Firestore:", error);
-        setSaveStatus('Error resetting content.');
-        setTimeout(() => setSaveStatus(''), 5000);
+        // setSaveStatus('Error resetting content.'); // Replaced by toast
+        showToast('Error resetting content.', 'error');
+        setSaveStatus(''); // Clear status
       }
     }
   };

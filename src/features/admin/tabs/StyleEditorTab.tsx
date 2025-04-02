@@ -3,7 +3,8 @@ import { doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc } from 'fir
 import chroma from 'chroma-js';
 import { db } from '../../../config/firebaseConfig';
 import ThemeSwitcher from '../components/ThemeSwitcher';
-import { 
+import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
+import {
   Palette, 
   Type, 
   Layout, 
@@ -78,6 +79,7 @@ const StyleEditorTab: React.FC = () => {
   const [activeTab, setActiveTab] = useState('colors');
   const [showColorPalette, setShowColorPalette] = useState(false);
   const [selectedShade, setSelectedShade] = useState<string | null>(null);
+  const { showToast, requestConfirmation } = useNotifications(); // Get notification functions
 
   // Load initial data
   useEffect(() => {
@@ -201,10 +203,12 @@ const StyleEditorTab: React.FC = () => {
       };
 
       await setDoc(doc(db, 'settings', 'styles'), styleData);
-      alert('Styles saved successfully!');
+      // alert('Styles saved successfully!'); // Use toast
+      showToast('Styles saved successfully!', 'success');
     } catch (error) {
       console.error('Error saving styles:', error);
-      alert('Failed to save styles');
+      // alert('Failed to save styles'); // Use toast
+      showToast('Failed to save styles. Check console.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -233,25 +237,43 @@ const StyleEditorTab: React.FC = () => {
       await addDoc(collection(db, 'themes'), themeData);
       loadInitialData(); // Reload themes
       setNewThemeName('');
-      alert('Theme saved successfully!');
+      // alert('Theme saved successfully!'); // Use toast
+      showToast('Theme saved successfully!', 'success');
     } catch (error) {
       console.error('Error saving theme:', error);
-      alert('Failed to save theme');
+      // alert('Failed to save theme'); // Use toast
+      showToast('Failed to save theme. Check console.', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteTheme = async (themeId: string) => {
-    if (!db || !window.confirm('Are you sure you want to delete this theme?')) return;
+    const themeToDelete = savedThemes.find(t => t.id === themeId);
+    if (!db || !themeToDelete) return;
 
-    try {
-      await deleteDoc(doc(db, 'themes', themeId));
-      setSavedThemes(prev => prev.filter(theme => theme.id !== themeId));
-    } catch (error) {
-      console.error('Error deleting theme:', error);
-      alert('Failed to delete theme');
-    }
+    // Use requestConfirmation
+    requestConfirmation({
+      message: `Are you sure you want to delete the theme "${themeToDelete.name}"?`,
+      onConfirm: async () => {
+        // Add check for db inside the callback
+        if (!db) {
+          showToast('Error: Firestore connection lost.', 'error');
+          return;
+        }
+        try {
+          await deleteDoc(doc(db, 'themes', themeId));
+          setSavedThemes(prev => prev.filter(theme => theme.id !== themeId));
+          showToast('Theme deleted successfully!', 'success'); // Success toast
+        } catch (error) {
+          console.error('Error deleting theme:', error);
+          // alert('Failed to delete theme'); // Use toast
+          showToast('Failed to delete theme. Check console.', 'error');
+        }
+      },
+      confirmText: 'Delete Theme',
+      title: 'Confirm Deletion'
+    });
   };
 
   const handleApplyTheme = (theme: SavedTheme) => {
@@ -307,9 +329,11 @@ const StyleEditorTab: React.FC = () => {
       setSectionBgColor(baseColor.darken(1.5).desaturate(0.4).hex());
 
       setAiMode(prev => prev + 1);
+      showToast('AI colors generated!', 'success'); // Feedback for generation
     } catch (error) {
       console.error('Error generating AI colors:', error);
-      alert('Failed to generate colors');
+      // alert('Failed to generate colors'); // Use toast
+      showToast('Failed to generate colors. Check console.', 'error');
     }
   };
 
@@ -335,6 +359,7 @@ const StyleEditorTab: React.FC = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    showToast('Theme exported successfully!', 'success'); // Export feedback
   };
 
   const importTheme = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -346,9 +371,11 @@ const StyleEditorTab: React.FC = () => {
       try {
         const themeData = JSON.parse(e.target?.result as string);
         handleGlobalThemeSelect(themeData);
+        showToast('Theme imported successfully!', 'success'); // Import feedback
       } catch (error) {
         console.error('Error importing theme:', error);
-        alert('Invalid theme file');
+        // alert('Invalid theme file'); // Use toast
+        showToast('Invalid theme file or format.', 'error');
       }
     };
     reader.readAsText(file);
@@ -382,7 +409,8 @@ const StyleEditorTab: React.FC = () => {
         <button
           onClick={() => {
             navigator.clipboard.writeText(value);
-            alert('Color code copied!');
+            // alert('Color code copied!'); // Use toast
+            showToast('Color code copied!', 'success');
           }}
           className="p-2 text-gray-500 hover:text-gray-700 self-start sm:self-center" // Align start on mobile
           title="Copy color code"

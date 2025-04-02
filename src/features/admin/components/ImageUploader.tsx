@@ -1,7 +1,10 @@
-import { useState, ChangeEvent, DragEvent, useRef } from 'react'; // Removed useMemo
-import supabase from '../../../config/supabaseConfig'; // Import Supabase client
+import { useState, ChangeEvent, DragEvent, useRef, useEffect } from 'react'; // Removed useCallback
+import supabase from '../../../config/supabaseConfig';
+import { FileObject } from '@supabase/storage-js';
+import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+// ToastType is now imported/managed by NotificationContext
 
 const BUCKET_NAME = 'img'; // Define bucket name
 
@@ -16,9 +19,280 @@ const ImageUploader = ({ onUploadSuccess }: { onUploadSuccess?: (url: string) =>
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState('Copy Link');
+  const [fileHistory, setFileHistory] = useState<FileObject[]>([]);
+  const [historyLoading, setHistoryLoading] = useState<boolean>(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyCopyStatus, setHistoryCopyStatus] = useState<{ fileId: string; message: string } | null>(null); // State for copy status
+  const [editingFileId, setEditingFileId] = useState<string | null>(null); // State for tracking editing file
+  const [newName, setNewName] = useState<string>('');
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [selectedHistoryFiles, setSelectedHistoryFiles] = useState<string[]>([]);
+  // Removed duplicate state declaration
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Use the notification hook
+  const { showToast, requestConfirmation } = useNotifications();
+
+  // --- Helper to get public URL ---
+  const getPublicUrl = (filePath: string): string | null => {
+    if (!supabase) return null;
+    const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+    return data?.publicUrl ?? null;
+  };
+
+  // --- History Functions ---
+  const fetchHistory = async () => {
+    setHistoryLoading(true);
+    setHistoryError(null);
+    if (!supabase) {
+        setHistoryError('Supabase client not initialized.');
+        setHistoryLoading(false);
+        return;
+    }
+    try {
+      const { data, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .list('public', { // List files in the 'public' folder
+          limit: 100, // Adjust limit as needed
+          offset: 0,
+          sortBy: { column: 'created_at', order: 'desc' },
+        });
+
+      if (error) throw error;
+      if (data) {
+        setFileHistory(data);
+      }
+    } catch (err) {
+      console.error("Error fetching file history:", err);
+      setHistoryError(`Failed to load history: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // --- History Selection ---
+  const handleHistorySelectionChange = (filePath: string, isSelected: boolean) => {
+    setSelectedHistoryFiles(prevSelected => {
+      if (isSelected) {
+        // Add to selection if not already present
+        return prevSelected.includes(filePath) ? prevSelected : [...prevSelected, filePath];
+      } else {
+        // Remove from selection
+        return prevSelected.filter(path => path !== filePath);
+      }
+    });
+  };
+
+  const handleUseSelected = () => {
+    if (!onUploadSuccess || selectedHistoryFiles.length === 0) return;
+
+    let successfulUrls: string[] = [];
+    let failedPaths: string[] = [];
+
+    selectedHistoryFiles.forEach(filePath => {
+      const publicUrl = getPublicUrl(filePath);
+      if (publicUrl) {
+        onUploadSuccess(publicUrl); // Call for each selected URL
+        successfulUrls.push(publicUrl);
+      } else {
+        failedPaths.push(filePath);
+        console.error("Could not get public URL for selected file:", filePath);
+      }
+    });
+
+    if (failedPaths.length > 0) {
+      // Use toast for error
+      showToast(`Failed to get URLs for: ${failedPaths.map(p => p.split('/').pop()).join(', ')}`, 'error');
+    }
+    if (successfulUrls.length > 0) {
+        // Use toast for success (optional, maybe just log)
+        showToast(`${successfulUrls.length} URL(s) used successfully.`, 'success');
+        console.log("Used URLs:", successfulUrls);
+        // Clear selection after successful use? Or keep it? Let's clear it for now.
+        setSelectedHistoryFiles([]);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!supabase || selectedHistoryFiles.length === 0) return;
+
+    const fileNames = selectedHistoryFiles.map(path => path.split('/').pop() || 'unknown file');
+    const message = `Are you sure you want to delete ${selectedHistoryFiles.length} selected file(s)?\n\n- ${fileNames.join('\n- ')}\n\nThis cannot be undone.`;
+
+    // Use confirmation from hook
+    requestConfirmation({
+      message,
+      confirmText: 'Confirm Delete', // Specify button text
+      onConfirm: async () => {
+        // Check supabase *inside* the callback
+        if (!supabase) {
+          showToast('Supabase client not initialized.', 'error');
+          return;
+        }
+        // Correctly placed try...catch block
+        try {
+          const { data, error } = await supabase.storage
+            .from(BUCKET_NAME)
+            .remove(selectedHistoryFiles); // Pass the array of full paths
+
+          if (error) throw error;
+
+          console.log('Successfully deleted files:', data);
+          // Use toast for success
+          showToast(`${selectedHistoryFiles.length} file(s) deleted successfully.`, 'success');
+          setSelectedHistoryFiles([]); // Clear selection
+          fetchHistory(); // Refresh history
+
+        } catch (err) {
+          console.error("Error deleting selected files:", err);
+          // Use toast for error
+          showToast(`Failed to delete selected files: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+        }
+      }, // Ensuring this comma is present
+    });
+  };
+
+  // --- Other History Actions ---
+  const handleCopyHistoryLink = async (url: string | null, fileId: string) => {
+    if (!url) {
+        setHistoryCopyStatus({ fileId, message: 'Error!' });
+        setTimeout(() => setHistoryCopyStatus(null), 2000);
+        return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setHistoryCopyStatus({ fileId, message: 'Copied!' });
+      setTimeout(() => setHistoryCopyStatus(null), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy history link:', err);
+      setHistoryCopyStatus({ fileId, message: 'Failed!' });
+      setTimeout(() => setHistoryCopyStatus(null), 2000); // Reset after 2 seconds
+    }
+  };
+
+  const handleEditClick = (fileId: string, currentName: string) => {
+    setEditingFileId(fileId);
+    setNewName(currentName); // Pre-fill input with current name
+    setRenameError(null); // Clear previous rename errors
+  };
+
+  const handleCancelEdit = () => {
+    setEditingFileId(null);
+    setNewName('');
+    setRenameError(null);
+  };
+
+ const handleSaveRename = async (fileId: string, oldName: string) => {
+    if (!supabase) {
+        setRenameError('Supabase client not initialized.');
+        return;
+    }
+    if (!newName || newName.trim() === '' || newName === oldName) {
+        setRenameError('Please enter a valid new name.');
+        return;
+    }
+
+    // Basic validation for filename (prevent slashes, etc.) - adjust as needed
+    if (newName.includes('/')) {
+        setRenameError('Filename cannot contain slashes.');
+        return;
+    }
+
+    // Preserve extension
+    const oldExtension = oldName.includes('.') ? oldName.substring(oldName.lastIndexOf('.')) : '';
+    let finalNewName = newName.trim();
+    if (oldExtension && !finalNewName.endsWith(oldExtension)) {
+        // If user removed or changed extension, add it back (or handle differently)
+        finalNewName += oldExtension;
+    }
+     // Ensure the new name doesn't lose the extension if the user didn't type it
+    const currentExtension = oldName.substring(oldName.lastIndexOf('.'));
+    let targetNewName = newName.trim();
+    if (!targetNewName.endsWith(currentExtension)) {
+        targetNewName += currentExtension;
+    }
+
+
+    const oldFilePath = `public/${oldName}`;
+    const newFilePath = `public/${targetNewName}`; // Use validated/adjusted new name
+
+    setRenameError(null); // Clear previous errors
+
+    try {
+        const { error } = await supabase.storage
+            .from(BUCKET_NAME)
+            .move(oldFilePath, newFilePath);
+
+        if (error) {
+            // Handle potential errors, e.g., file already exists with the new name
+            if (error.message.includes('already exists')) {
+                 throw new Error(`A file named '${targetNewName}' already exists.`);
+            }
+            throw error;
+        }
+
+        // Success
+        handleCancelEdit(); // Exit edit mode
+        fetchHistory(); // Refresh the list
+        // Use toast for success
+        showToast('File renamed successfully!', 'success');
+
+    } catch (err) {
+        console.error("Error renaming file:", err);
+        setRenameError(`Rename failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        // Keep edit mode active so user can see the error and try again or cancel
+    }
+};
+
+
+  const handleDeleteFile = async (filePath: string) => {
+    if (!supabase) {
+        // Use toast for error
+        showToast('Supabase client not initialized.', 'error');
+        return;
+    }
+    const fileName = filePath.split('/').pop() || 'this file';
+    const message = `Are you sure you want to delete ${fileName}? This cannot be undone.`;
+
+    // Use confirmation from hook
+    requestConfirmation({
+      message,
+      confirmText: 'Confirm Delete', // Specify button text
+      onConfirm: async () => {
+        // Check supabase *inside* the callback
+        if (!supabase) {
+          showToast('Supabase client not initialized.', 'error');
+          return;
+        }
+        // Correctly placed try...catch block
+        try {
+          const { error } = await supabase.storage
+            .from(BUCKET_NAME)
+            .remove([filePath]); // Pass the full path
+
+          if (error) throw error;
+
+          // Refresh history after successful deletion
+          fetchHistory();
+          // Use toast for success
+          showToast('File deleted successfully.', 'success');
+
+        } catch (err) {
+          console.error("Error deleting file:", err);
+          // Use toast for error
+          showToast(`Failed to delete file: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+        }
+      }, // Comma is correctly placed after the callback definition
+    });
+  };
+
+  // Fetch history on component mount
+  useEffect(() => {
+    fetchHistory();
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  // --- Upload Functions ---
   const handleFileSelect = (file: File | null) => {
     if (file && file.type.startsWith('image/')) {
       setSelectedFile(file);
@@ -126,6 +400,8 @@ const ImageUploader = ({ onUploadSuccess }: { onUploadSuccess?: (url: string) =>
       if (onUploadSuccess) {
         onUploadSuccess(publicUrl);
       }
+      // Refresh history after successful upload
+      fetchHistory();
       // Keep selectedFile and previewUrl for the success screen
 
     } catch (err) {
@@ -244,13 +520,148 @@ const ImageUploader = ({ onUploadSuccess }: { onUploadSuccess?: (url: string) =>
      </div>
    );
 
+   // --- Render History ---
+   const renderHistory = () => (
+    <div className="w-full max-w-2xl mt-8 bg-white rounded-xl shadow-lg p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium text-gray-700">Uploaded Files History</h3>
+        {/* Action buttons for selected files */}
+        {selectedHistoryFiles.length > 0 && (
+          <div className="flex items-center space-x-2">
+             <span className="text-sm text-gray-600">
+                {selectedHistoryFiles.length} selected
+             </span>
+            <button
+              onClick={handleUseSelected}
+              className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors disabled:opacity-50"
+              title="Use selected image URLs"
+              disabled={!onUploadSuccess} // Disable if no callback provided
+            >
+              Use Selected
+            </button>
+            <button
+              onClick={handleDeleteSelected}
+              className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+              title="Delete selected files permanently"
+            >
+              Delete Selected
+            </button>
+          </div>
+        )}
+      </div>
+
+      {historyLoading && <p className="text-gray-500">Loading history...</p>}
+      {historyError && <p className="text-red-500">{historyError}</p>}
+      {!historyLoading && !historyError && (
+        <ul className="max-h-60 overflow-y-auto divide-y divide-gray-200 border rounded-md">
+          {fileHistory.length === 0 ? (
+            <li className="p-3 text-center text-gray-500">No files found in history.</li>
+          ) : (
+            fileHistory.map((file) => {
+              const fileId = file.id || file.name; // Use consistent ID
+              const currentName = file.name;
+              const filePath = `public/${currentName}`;
+              const publicUrl = getPublicUrl(filePath);
+              const copyStatus = historyCopyStatus?.fileId === fileId ? historyCopyStatus.message : null;
+              const isEditing = editingFileId === fileId;
+              const isSelected = selectedHistoryFiles.includes(filePath); // Check if selected
+
+              return (
+              <li key={fileId} className={`p-3 flex justify-between items-center text-sm ${isSelected ? 'bg-blue-50' : ''}`}> {/* Highlight selected rows */}
+                <div className="flex items-center space-x-3 flex-grow min-w-0 mr-2"> {/* Reduced mr */}
+                   {/* Checkbox for Selection */}
+                   <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => handleHistorySelectionChange(filePath, e.target.checked)}
+                    className="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
+                    aria-label={`Select file ${currentName}`}
+                    disabled={isEditing} // Disable checkbox while editing name
+                  />
+                  {/* Image Preview */}
+                  {publicUrl ? (
+                    <img src={publicUrl} alt={`Preview of ${currentName}`} className="h-10 w-10 object-cover rounded flex-shrink-0" loading="lazy" />
+                  ) : (
+                    <div className="h-10 w-10 bg-gray-200 rounded flex items-center justify-center text-gray-400 flex-shrink-0">?</div>
+                  )}
+
+                  {/* Filename Display or Edit Input */}
+                  {isEditing ? (
+                    <div className="flex-grow">
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="text-sm border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        aria-label="New filename"
+                      />
+                      {renameError && <p className="text-red-500 text-xs mt-1">{renameError}</p>}
+                    </div>
+                  ) : (
+                    <span className="text-gray-800 truncate" title={currentName}>{currentName}</span>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-1 flex-shrink-0"> {/* Reduced space */}
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={() => handleSaveRename(fileId, currentName)}
+                        className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                        title="Save new name"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors"
+                        title="Cancel editing"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Removed the individual 'Select' button */}
+                      <button onClick={() => handleCopyHistoryLink(publicUrl, fileId)} className={`px-2 py-1 text-white text-xs rounded transition-colors ${copyStatus === 'Copied!' ? 'bg-green-600' : copyStatus === 'Failed!' || copyStatus === 'Error!' ? 'bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`} title="Copy image link" disabled={!publicUrl || !!copyStatus || isSelected}> {/* Disable if selected? Or allow? */}
+                        {copyStatus || 'Copy'}
+                      </button>
+                       <button onClick={() => handleEditClick(fileId, currentName)} className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition-colors" title="Rename file" disabled={isSelected}> {/* Disable if selected */}
+                        Edit
+                      </button>
+                      <button onClick={() => handleDeleteFile(filePath)} className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" title="Delete this file permanently" disabled={isSelected}> {/* Disable if selected */}
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+              </li>
+              );
+            })
+          )}
+        </ul>
+      )}
+    </div>
+   );
+
+  // Removed the local ToastNotification component definition entirely
 
   return (
-    <div className="flex items-center justify-center min-h-[300px] bg-gray-100 p-4">
-      {status === 'idle' && renderIdleState()}
-      {status === 'uploading' && renderUploadingState()}
-      {status === 'success' && renderSuccessState()}
-      {status === 'error' && renderErrorState()}
+    // Removed relative positioning if not needed by other elements
+    <div className="flex flex-col items-center justify-start min-h-[400px] bg-gray-100 p-4">
+      {/* Toast and Modal are now rendered by NotificationProvider */}
+
+      {/* Uploader Section */}
+      <div className="w-full flex justify-center mb-4">
+        {status === 'idle' && renderIdleState()}
+        {status === 'uploading' && renderUploadingState()}
+        {status === 'success' && renderSuccessState()}
+        {status === 'error' && renderErrorState()}
+      </div>
+
+      {/* History Section */}
+      {renderHistory()}
     </div>
   );
 };

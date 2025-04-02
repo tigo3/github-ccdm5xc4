@@ -13,6 +13,7 @@ import { getProjectsData as defaultGetProjectsData } from './data/ProjectsSectio
 import Logo from './components/Logo';
 import DynamicPage from './pages/DynamicPage'; // Import from new location
 import ScrollToTopButton from './components/ScrollToTopButton'; // Import the new component
+import { NotificationProvider } from './context/NotificationContext'; // Import NotificationProvider
 
 const ServicesSection = lazy(() => import('./components/ServicesSection'));
 const ProjectsSection = lazy(() => import('./components/ProjectsSection'));
@@ -414,10 +415,11 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Pass dynamicPages to MainSite */}
-        <Route path="/" element={<MainSite dynamicPages={dynamicPages} />} />
+    <NotificationProvider> {/* Wrap with NotificationProvider */}
+      <BrowserRouter>
+        <Routes>
+          {/* Pass dynamicPages to MainSite */}
+          <Route path="/" element={<MainSite dynamicPages={dynamicPages} />} />
         {/* Dynamically create routes for fetched pages */}
         {dynamicPages.map(page => (
           <Route
@@ -435,10 +437,11 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
-      </Routes>
-      <ScrollToTopButton /> {/* Add the button here */}
-    </BrowserRouter>
+          <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+        </Routes>
+        <ScrollToTopButton /> {/* Add the button here */}
+      </BrowserRouter>
+    </NotificationProvider>
   );
 }
 

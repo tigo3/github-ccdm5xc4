@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react'; // Removed useCallback
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from "firebase/auth";
+import { NotificationProvider } from '../../context/NotificationContext'; // Import NotificationProvider
+import ToastNotification from '../../components/common/ToastNotification'; // Import ToastNotification
+import ConfirmationModal from '../../components/common/ConfirmationModal'; // Import ConfirmationModal
 import { 
   LayoutDashboard, 
   FileEdit, 
@@ -254,9 +257,10 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Top Navigation Bar */}
-      <nav className="bg-white shadow-md fixed w-full z-10">
+    <NotificationProvider> {/* Wrap with NotificationProvider */}
+      <div className="min-h-screen bg-gray-100">
+        {/* Top Navigation Bar */}
+        <nav className="bg-white shadow-md fixed w-full z-10">
         <div className="px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {/* Sidebar Toggle Button */}
@@ -395,7 +399,9 @@ const AdminDashboard: React.FC = () => {
           </div>
         </main>
       </div>
+      {/* ToastNotification and ConfirmationModal are rendered internally by NotificationProvider */}
     </div>
+    </NotificationProvider> // Close NotificationProvider
   );
 };
 

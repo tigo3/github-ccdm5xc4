@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNotifications } from '../../../context/NotificationContext'; // Corrected import path
 
 // Define the props type for the ProjectsTab component
 interface ProjectsTabProps {
@@ -30,6 +31,8 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({
   handleDelete,
   renderFields, // Receive renderFields as a prop
 }) => {
+  const { requestConfirmation } = useNotifications(); // Get the function from the context
+
   // This logic is adapted from the original renderFields function's special handling for 'projects'
   return (
     <div key={path.join('.')} className="mb-6 p-4 border border-gray-200 rounded">
@@ -65,9 +68,13 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({
                 </h5>
                 <button
                   onClick={() => {
-                    if (window.confirm(`Are you sure you want to delete project "${key}"?`)) {
-                      handleDelete(projectPath);
-                    }
+                    // Use requestConfirmation instead of window.confirm
+                    requestConfirmation({
+                      message: `Are you sure you want to delete project "${key}"?\nThis action cannot be undone.`,
+                      onConfirm: () => handleDelete(projectPath),
+                      confirmText: 'Delete Project', // Customize button text
+                      title: 'Confirm Deletion'     // Customize modal title
+                    });
                   }}
                   className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline transition-colors duration-150"
                   aria-label={`Delete project ${key}`}

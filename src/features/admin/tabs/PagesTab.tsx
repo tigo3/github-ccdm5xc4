@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Removed useRef
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 // Import necessary types and Firebase functions
 import { Page } from '../types'; // Use the defined Page type
 import QuillEditor from '../components/QuillEditor'; // Import the new QuillEditor component
 import { db } from '../../../config/firebaseConfig';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore'; // Import Firestore functions, added writeBatch
-import { Trash2, Edit, ArrowUp, ArrowDown } from 'lucide-react'; // Added icons
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore';
+import { Trash2, Edit, ArrowUp, ArrowDown } from 'lucide-react';
+import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
 
 const PagesTab: React.FC = () => {
+  const { showToast, requestConfirmation } = useNotifications(); // Get notification functions
   // State for managing pages
   const [pages, setPages] = useState<Page[]>([]); // Use the Page type
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null); // Replaced by toasts for most errors
 
   // State for the form (add/edit)
   const [isEditing, setIsEditing] = useState<string | null>(null); // Store ID of page being edited
@@ -26,12 +28,13 @@ const PagesTab: React.FC = () => {
   // Fetch pages from Firestore on component mount
   const fetchPages = useCallback(async () => {
     if (!db || !pagesCollectionRef) {
-      setError("Firestore database is not initialized.");
+      // setError("Firestore database is not initialized."); // Use toast
+      showToast("Error: Firestore database is not initialized.", 'error');
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
-    setError(null);
+    // setError(null); // Clear previous errors implicitly
     try {
       console.log('Fetching pages from Firestore...');
       // Order pages by the 'order' field
@@ -41,11 +44,12 @@ const PagesTab: React.FC = () => {
       setPages(pagesList);
     } catch (err) {
       console.error("Error fetching pages:", err);
-      setError('Failed to load pages. Ensure the "pages" collection exists and has an "order" field.'); // Updated error message
+      // setError('Failed to load pages. Ensure the "pages" collection exists and has an "order" field.'); // Use toast
+      showToast('Failed to load pages. Check console for details.', 'error');
     } finally {
       setIsLoading(false);
     }
-   }, [pagesCollectionRef]); // Add dependency
+   }, [pagesCollectionRef, showToast]); // Add showToast dependency
 
   useEffect(() => {
     fetchPages();
@@ -57,13 +61,15 @@ const PagesTab: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pageTitle || !pageSlug || !pageContent) {
-        setError("Title, Slug, and Content are required.");
+        // setError("Title, Slug, and Content are required."); // Use toast
+        showToast("Title, Slug, and Content are required.", 'error');
         return;
     }
     setIsLoading(true);
-    setError(null);
+    // setError(null);
     if (!db) {
-      setError("Firestore database is not initialized. Cannot save page.");
+      // setError("Firestore database is not initialized. Cannot save page."); // Use toast
+      showToast("Error: Firestore database is not initialized.", 'error');
       setIsLoading(false);
       return;
     }
@@ -92,13 +98,15 @@ const PagesTab: React.FC = () => {
         if (!pagesCollectionRef) throw new Error("Collection reference not available");
         await addDoc(pagesCollectionRef, pageData);
         console.log('Page added successfully.');
+        showToast('Page added successfully!', 'success'); // Success toast
       }
       // Reset form and fetch updated list
       resetForm();
       fetchPages(); // Fetch updated list including the new/updated item and correct order
     } catch (err) {
       console.error("Error saving page:", err);
-      setError('Failed to save page. Check console for details.');
+      // setError('Failed to save page. Check console for details.'); // Use toast
+      showToast('Failed to save page. Check console for details.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -108,42 +116,54 @@ const PagesTab: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!id) {
         console.error("Cannot delete page without ID.");
-        setError("Cannot delete page: Invalid ID.");
+        // setError("Cannot delete page: Invalid ID."); // Use toast
+        showToast("Cannot delete page: Invalid ID.", 'error');
         return;
     }
-    if (window.confirm(`Are you sure you want to delete the page with ID: ${id}?`)) {
-      setIsLoading(true);
-      setError(null);
-      if (!db) {
-        setError("Firestore database is not initialized. Cannot delete page.");
-        setIsLoading(false);
-        return;
-      }
-      try {
-        console.log('Deleting page from Firestore:', id);
-        const pageRef = doc(db, 'pages', id);
-        await deleteDoc(pageRef);
-        // Remove from local state
-        setPages(pages.filter(p => p.id !== id));
-        console.log('Page deleted successfully.');
-        // If deleting the page currently being edited, reset the form
-        if (isEditing === id) {
-            resetForm();
+    // Use requestConfirmation
+    requestConfirmation({
+      message: `Are you sure you want to delete the page "${pages.find(p => p.id === id)?.title || id}"?\nThis action cannot be undone.`,
+      onConfirm: async () => { // Make the confirmation callback async
+        setIsLoading(true);
+        // setError(null);
+        if (!db) {
+          // setError("Firestore database is not initialized. Cannot delete page."); // Use toast
+          showToast("Error: Firestore database is not initialized.", 'error');
+          setIsLoading(false);
+          return;
         }
-      } catch (err) {
-        console.error("Error deleting page:", err);
-        setError('Failed to delete page. Check console for details.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
+        try {
+          console.log('Deleting page from Firestore:', id);
+          const pageRef = doc(db, 'pages', id);
+          await deleteDoc(pageRef);
+          // Remove from local state (or rely on fetchPages)
+          // setPages(pages.filter(p => p.id !== id)); // Can be removed if fetchPages is reliable
+          console.log('Page deleted successfully.');
+          showToast('Page deleted successfully!', 'success'); // Success toast
+          // If deleting the page currently being edited, reset the form
+          if (isEditing === id) {
+              resetForm();
+          }
+          fetchPages(); // Refresh list after delete
+        } catch (err) {
+          console.error("Error deleting page:", err);
+          // setError('Failed to delete page. Check console for details.'); // Use toast
+          showToast('Failed to delete page. Check console for details.', 'error');
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      confirmText: 'Delete Page',
+      title: 'Confirm Deletion'
+    });
   };
 
   // Function to start editing a page
   const startEditing = (page: Page) => { // Use Page type
     if (!page.id) {
         console.error("Cannot edit page without ID.");
-        setError("Cannot edit page: Invalid ID.");
+        // setError("Cannot edit page: Invalid ID."); // Use toast
+        showToast("Cannot edit page: Invalid ID.", 'error');
         return;
     }
     setIsEditing(page.id);
@@ -167,7 +187,7 @@ const PagesTab: React.FC = () => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= pages.length || !db || !pagesCollectionRef) return; // Boundary checks and db check
 
-    setError(null);
+    // setError(null);
     setIsLoading(true); // Indicate activity
 
     const pageToMove = pages[index];
@@ -184,10 +204,12 @@ const PagesTab: React.FC = () => {
 
     try {
       await batch.commit();
+      showToast(`Page moved ${direction} successfully.`, 'success'); // Success toast
       fetchPages(); // Refresh list with new order
     } catch (err) {
       console.error(`Error moving page ${direction}:`, err);
-      setError(`Failed to reorder page. Please try again.`);
+      // setError(`Failed to reorder page. Please try again.`); // Use toast
+      showToast(`Failed to reorder page. Please try again.`, 'error');
       setIsLoading(false); // Ensure loading state is reset on error
     }
     // setIsLoading(false) will be called in fetchPages' finally block
@@ -203,7 +225,8 @@ const PagesTab: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-800">Manage Pages</h2>
 
-      {error && <p className="text-red-500 bg-red-100 p-3 rounded">{error}</p>}
+      {/* Error display removed, handled by toasts */}
+      {/* {error && <p className="text-red-500 bg-red-100 p-3 rounded">{error}</p>} */}
 
       {/* Add/Edit Form */}
       <form onSubmit={handleSubmit} className="p-4 border rounded shadow-sm bg-white space-y-4">

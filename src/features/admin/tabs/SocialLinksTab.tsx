@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Import useMemo
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { db } from '../../../config/firebaseConfig';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore';
 import { Trash2, Edit, PlusCircle, Save, XCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
 
 // Re-use the interface from App.tsx (consider moving to a shared types file later)
 interface SocialLink {
@@ -19,9 +20,10 @@ const availableIcons = [
 ];
 
 const SocialLinksTab: React.FC = () => {
+  const { showToast, requestConfirmation } = useNotifications(); // Get notification functions
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null); // Replaced by toasts
   const [isAdding, setIsAdding] = useState(false);
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
   const [currentLink, setCurrentLink] = useState<Omit<SocialLink, 'id'>>({ name: '', url: '', icon: availableIcons[0], order: 0 });
@@ -31,12 +33,13 @@ const SocialLinksTab: React.FC = () => {
 
   const fetchLinks = useCallback(async () => {
     if (!db || !linksCollectionRef) {
-      setError("Firestore is not initialized correctly.");
+      // setError("Firestore is not initialized correctly."); // Use toast
+      showToast("Error: Firestore is not initialized.", 'error');
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
-    setError(null);
+    // setError(null);
     try {
       const q = query(linksCollectionRef, orderBy('order', 'asc'));
       const data = await getDocs(q);
@@ -45,11 +48,12 @@ const SocialLinksTab: React.FC = () => {
     } catch (err) {
       // Keep console error for debugging potential fetch issues
       console.error("Error fetching social links:", err);
-      setError("Failed to load social links. Please try again.");
+      // setError("Failed to load social links. Please try again."); // Use toast
+      showToast("Failed to load social links. Please try again.", 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [linksCollectionRef]);
+  }, [linksCollectionRef, showToast]); // Add showToast dependency
 
   useEffect(() => {
     fetchLinks();
@@ -69,50 +73,58 @@ const SocialLinksTab: React.FC = () => {
   const handleAddLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentLink.name || !currentLink.url || !currentLink.icon) {
-      setError("Name, URL, and Icon are required.");
+      // setError("Name, URL, and Icon are required."); // Use toast
+      showToast("Name, URL, and Icon are required.", 'error');
       return;
     }
-    setError(null);
+    // setError(null);
     if (!db || !linksCollectionRef) {
-      setError("Firestore is not initialized correctly.");
+      // setError("Firestore is not initialized correctly."); // Use toast
+      showToast("Error: Firestore is not initialized.", 'error');
       return;
     }
     try {
       await addDoc(linksCollectionRef, currentLink);
+      showToast('Link added successfully!', 'success'); // Success toast
       resetForm();
       fetchLinks(); // Refresh list
     } catch (err) {
       console.error("Error adding link:", err);
-      setError("Failed to add link. Please try again.");
+      // setError("Failed to add link. Please try again."); // Use toast
+      showToast("Failed to add link. Please try again.", 'error');
     }
   };
 
   const handleUpdateLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingLinkId || !currentLink.name || !currentLink.url || !currentLink.icon) {
-      setError("Name, URL, and Icon are required.");
+      // setError("Name, URL, and Icon are required."); // Use toast
+      showToast("Name, URL, and Icon are required.", 'error');
       return;
     }
-    setError(null);
+    // setError(null);
     if (!db) {
-       setError("Firestore is not initialized correctly.");
+       // setError("Firestore is not initialized correctly."); // Use toast
+       showToast("Error: Firestore is not initialized.", 'error');
        return;
     }
     try {
       const linkDoc = doc(db, 'socialLinks', editingLinkId);
       await updateDoc(linkDoc, currentLink);
+      showToast('Link updated successfully!', 'success'); // Success toast
       resetForm();
       fetchLinks(); // Refresh list
     } catch (err) {
       console.error("Error updating link:", err);
-      setError("Failed to update link. Please try again.");
+      // setError("Failed to update link. Please try again."); // Use toast
+      showToast("Failed to update link. Please try again.", 'error');
     }
   };
 
   // Function to handle moving a link up
   const handleMoveUp = async (index: number) => {
     if (index === 0 || !db) return; // Cannot move the first item up or if db is not available
-    setError(null);
+    // setError(null);
     const linkToMove = links[index];
     const linkToSwapWith = links[index - 1];
 
@@ -127,17 +139,19 @@ const SocialLinksTab: React.FC = () => {
 
     try {
       await batch.commit();
+      showToast('Link moved up successfully.', 'success'); // Success toast
       fetchLinks(); // Refresh list with new order
     } catch (err) {
       console.error("Error moving link up:", err);
-      setError("Failed to reorder link. Please try again.");
+      // setError("Failed to reorder link. Please try again."); // Use toast
+      showToast("Failed to reorder link. Please try again.", 'error');
     }
   };
 
   // Function to handle moving a link down
   const handleMoveDown = async (index: number) => {
     if (index === links.length - 1 || !db) return; // Cannot move the last item down or if db is not available
-    setError(null);
+    // setError(null);
     const linkToMove = links[index];
     const linkToSwapWith = links[index + 1];
 
@@ -152,30 +166,44 @@ const SocialLinksTab: React.FC = () => {
 
     try {
       await batch.commit();
+      showToast('Link moved down successfully.', 'success'); // Success toast
       fetchLinks(); // Refresh list with new order
     } catch (err) {
       console.error("Error moving link down:", err);
-      setError("Failed to reorder link. Please try again.");
+      // setError("Failed to reorder link. Please try again."); // Use toast
+      showToast("Failed to reorder link. Please try again.", 'error');
     }
   };
 
 
   const handleDeleteLink = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this link?")) {
-      setError(null);
-       if (!db) {
-          setError("Firestore is not initialized correctly.");
-          return;
-       }
-      try {
-        const linkDoc = doc(db, 'socialLinks', id);
-        await deleteDoc(linkDoc);
-        fetchLinks(); // Refresh list
-      } catch (err) {
-        console.error("Error deleting link:", err);
-        setError("Failed to delete link. Please try again.");
-      }
-    }
+    const linkToDelete = links.find(l => l.id === id);
+    if (!linkToDelete) return;
+
+    // Use requestConfirmation
+    requestConfirmation({
+      message: `Are you sure you want to delete the link "${linkToDelete.name}"?`,
+      onConfirm: async () => {
+        // setError(null);
+        if (!db) {
+           // setError("Firestore is not initialized correctly."); // Use toast
+           showToast("Error: Firestore is not initialized.", 'error');
+           return;
+        }
+        try {
+          const linkDoc = doc(db, 'socialLinks', id);
+          await deleteDoc(linkDoc);
+          showToast('Link deleted successfully!', 'success'); // Success toast
+          fetchLinks(); // Refresh list
+        } catch (err) {
+          console.error("Error deleting link:", err);
+          // setError("Failed to delete link. Please try again."); // Use toast
+          showToast("Failed to delete link. Please try again.", 'error');
+        }
+      },
+      confirmText: 'Delete Link',
+      title: 'Confirm Deletion'
+    });
   };
 
   const startEditing = (link: SocialLink) => {
@@ -188,7 +216,8 @@ const SocialLinksTab: React.FC = () => {
     <div className="p-4 md:p-6 bg-gray-800 rounded-lg shadow-lg text-gray-200">
       <h2 className="text-2xl font-semibold mb-4 text-white">Manage Social Links</h2>
 
-      {error && <p className="text-red-400 bg-red-900/50 p-3 rounded mb-4">{error}</p>}
+      {/* Error display removed, handled by toasts */}
+      {/* {error && <p className="text-red-400 bg-red-900/50 p-3 rounded mb-4">{error}</p>} */}
       {isLoading && <p>Loading links...</p>}
 
       {/* Add/Edit Form */}
