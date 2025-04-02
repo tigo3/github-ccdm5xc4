@@ -1,12 +1,29 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Removed useCallback
 import { useNavigate } from 'react-router-dom';
 import { signOut } from "firebase/auth";
-import { auth } from '../../config/firebaseConfig'; // Keep auth import for logout
+import { 
+  LayoutDashboard, 
+  FileEdit, 
+  Palette, 
+  Link2, 
+  Settings, 
+  LogOut,
+  Image,
+  Search,
+  ChevronDown,
+  Bell,
+  User,
+  // BarChart2, // Removed unused icon
+  Eye,
+  MessageSquare,
+  FileText,
+  Star
+} from 'lucide-react';
+import { auth } from '../../config/firebaseConfig';
 
 // Import Hooks and Components
 import { useAdminData } from './hooks/useAdminData';
-import AdminHeader from './components/AdminHeader';
-import AdminTabs from './components/AdminTabs';
+// import AdminTabs from './components/AdminTabs'; // Removed unused component
 
 // Import Tab Components
 import ProjectsTab from './tabs/ProjectsTab';
@@ -14,15 +31,32 @@ import ServicesTab from './tabs/ServicesTab';
 import StyleEditorTab from './tabs/StyleEditorTab';
 import SocialLinksTab from './tabs/SocialLinksTab';
 import GeneralInfoTab from './tabs/GeneralInfoTab';
-import PagesTab from './tabs/PagesTab'; // Import the new PagesTab
+import PagesTab from './tabs/PagesTab';
 
 // Import Utilities and Types
-import { renderFields, getStaticSectionName, isValidTranslationKey } from './utils'; // Import necessary utils
-// Types might be implicitly handled by the hook, remove if not directly needed
-// import { TranslationsType } from './types';
+import { renderFields, getStaticSectionName, isValidTranslationKey } from './utils';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Renamed for clarity, controls mobile overlay
+  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false); // For desktop collapse
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // md breakpoint
+
+  // Effect to handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setIsSidebarOpen(false); // Close mobile overlay if resizing to desktop
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
 
   // Use the custom hook for data management
   const {
@@ -34,31 +68,30 @@ const AdminDashboard: React.FC = () => {
     handleAddNewService,
     saveChanges,
     handleDeleteItem,
-    resetToDefaults,
+    // resetToDefaults, // Removed unused variable
   } = useAdminData();
 
   // Local UI state
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [editingPath, setEditingPath] = useState<string | null>(null);
-  const [logoutError, setLogoutError] = useState('');
+  // const [logoutError, setLogoutError] = useState(''); // Removed unused state
 
-  // Set initial active tab once data is loaded
-  useEffect(() => {
-    if (!isLoading && activeTab === null && translations && translations.en) {
-      const keys = Object.keys(translations.en);
-      if (keys.length > 0) {
-        // Default to 'generalInfo' if available, otherwise the first key
-        setActiveTab(keys.includes('generalInfo') ? 'generalInfo' : keys[0]);
-      }
-    }
-  }, [isLoading, activeTab, translations]);
+  // Mock data for dashboard widgets
+  const stats = {
+    pageViews: '1,234',
+    totalPages: '12',
+    comments: '45',
+    averageRating: '4.8'
+  };
 
-  // Logout handler (kept here as it uses navigate)
+  // Logout handler
   const handleLogout = async () => {
-    setLogoutError('');
+    // setLogoutError(''); // Removed unused state setter
     if (!auth) {
       console.error("Firebase auth instance is not available.");
-      setLogoutError('Logout service unavailable. Please try again later.');
+      // setLogoutError('Logout service unavailable. Please try again later.'); // Removed unused state setter
+      // Optionally, display an alert or console log here if needed
+      alert('Logout service unavailable. Please try again later.');
       return;
     }
     try {
@@ -66,102 +99,134 @@ const AdminDashboard: React.FC = () => {
       navigate('/admin/login');
     } catch (error) {
       console.error("Logout failed:", error);
-      setLogoutError('Failed to log out. Please try again.');
+      // setLogoutError('Failed to log out. Please try again.'); // Removed unused state setter
+      // Optionally, display an alert or console log here if needed
+      alert('Failed to log out. Please try again.');
     }
   };
 
-  // Simplified handler for adding new project - hook handles logic, component handles UI switch
-  const handleAddNewProjectClick = useCallback(() => {
-    handleAddNewProject(); // Call hook function
-    setActiveTab('projects'); // Switch tab locally
-  }, [handleAddNewProject, setActiveTab]);
+  // Navigation items
+  const navItems = [
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', tab: 'dashboard' },
+    { icon: <FileText size={20} />, label: 'Pages', tab: 'pages' },
+    { icon: <FileEdit size={20} />, label: 'Projects', tab: 'projects' },
+    { icon: <Image size={20} />, label: 'Media', tab: 'media' },
+    { icon: <Palette size={20} />, label: 'Appearance', tab: 'styleEditor' },
+    { icon: <Link2 size={20} />, label: 'Social Links', tab: 'socialLinks' },
+    { icon: <Settings size={20} />, label: 'Settings', tab: 'generalInfo' },
+  ];
 
-  // Simplified handler for adding new service - hook handles logic, component handles UI switch
-  const handleAddNewServiceClick = useCallback(() => {
-    handleAddNewService(); // Call hook function
-    setActiveTab('services'); // Switch tab locally
-  }, [handleAddNewService, setActiveTab]);
+  const renderDashboardContent = () => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-700 font-semibold">Page Views</h3>
+            <Eye className="text-blue-500" size={20} />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{stats.pageViews}</p>
+          <p className="text-sm text-gray-500 mt-2">Last 30 days</p>
+        </div>
 
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-700 font-semibold">Total Pages</h3>
+            <FileText className="text-green-500" size={20} />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{stats.totalPages}</p>
+          <p className="text-sm text-gray-500 mt-2">Published content</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-700 font-semibold">Comments</h3>
+            <MessageSquare className="text-purple-500" size={20} />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{stats.comments}</p>
+          <p className="text-sm text-gray-500 mt-2">Awaiting response</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-700 font-semibold">Average Rating</h3>
+            <Star className="text-yellow-500" size={20} />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{stats.averageRating}</p>
+          <p className="text-sm text-gray-500 mt-2">Based on feedback</p>
+        </div>
+      </div>
+    );
+  };
 
   const renderActiveTabContent = () => {
-    // Show loading indicator while fetching initial data
     if (isLoading) {
-      return <p className="text-gray-500 text-center py-10">Loading content...</p>;
+      return <div className="flex items-center justify-center py-10">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>;
     }
 
-    if (!activeTab) {
-      // If still no active tab after loading, prompt selection
-      return <p className="text-gray-500">Select a section above to start editing.</p>;
+    if (!activeTab || activeTab === 'dashboard') {
+      return renderDashboardContent();
     }
 
-    // Static Tabs
     if (activeTab === 'styleEditor') {
-      return <StyleEditorTab />; // Assumes StyleEditorTab handles its own data/saving
+      return <StyleEditorTab />;
     }
     if (activeTab === 'socialLinks') {
-      return <SocialLinksTab />; // Assumes SocialLinksTab handles its own data/saving
+      return <SocialLinksTab />;
     }
     if (activeTab === 'pages') {
-      return <PagesTab />; // Render PagesTab when active
+      return <PagesTab />;
     }
 
-    // Dynamic Tabs - Use type guard from utils
     if (isValidTranslationKey(activeTab)) {
       const staticTabTitle = getStaticSectionName(activeTab);
 
       return (
         <>
           <h3 className="text-xl font-semibold mb-4 text-gray-700 capitalize">
-            Editing: {staticTabTitle} Content
+            {staticTabTitle}
           </h3>
-          {/* Render specific tabs using data/handlers from the hook */}
-          {activeTab === 'projects' ? (() => {
-            const projectsData = translations.en.projects;
-            return <ProjectsTab
-              data={projectsData}
+          {activeTab === 'projects' ? (
+            <ProjectsTab
+              data={translations.en.projects}
               path={[activeTab]}
               handleChange={handleInputChange}
               editingPath={editingPath}
               setEditingPath={setEditingPath}
-              handleAddProject={handleAddNewProjectClick} // Use the wrapper
+              handleAddProject={handleAddNewProject}
               handleDelete={handleDeleteItem}
               renderFields={renderFields}
-            />;
-          })() : activeTab === 'services' ? (() => {
-             const servicesData = translations.en.services;
-             // Basic validation for services structure
-             const validServicesData = (servicesData && typeof servicesData === 'object' && Array.isArray(servicesData.list))
-               ? servicesData
-               : { title: 'Services', list: [] }; // Provide default structure if invalid/missing
-
-             return <ServicesTab
-              data={validServicesData}
+            />
+          ) : activeTab === 'services' ? (
+            <ServicesTab
+              data={translations.en.services}
               path={[activeTab]}
               handleChange={handleInputChange}
               editingPath={editingPath}
               setEditingPath={setEditingPath}
-              handleAddService={handleAddNewServiceClick} // Use the wrapper
+              handleAddService={handleAddNewService}
               handleDelete={handleDeleteItem}
               renderFields={renderFields}
-            />;
-          })() : activeTab === 'generalInfo' ? (
+            />
+          ) : activeTab === 'generalInfo' ? (
             <GeneralInfoTab
-              translations={translations} // Pass full translations
+              translations={translations}
               handleInputChange={handleInputChange}
               editingPath={editingPath}
               setEditingPath={setEditingPath}
               handleDeleteItem={handleDeleteItem}
               renderFields={renderFields}
-              getStaticSectionName={getStaticSectionName} // Pass util
+              getStaticSectionName={getStaticSectionName}
             />
-          ) : ( // Generic rendering for remaining dynamic tabs (e.g., contact)
+          ) : (
             renderFields(
-              translations.en[activeTab], // Pass the specific section data
+              translations.en[activeTab],
               [activeTab],
               handleInputChange,
               editingPath,
               setEditingPath,
-              undefined, // No add handler for generic fields
+              undefined,
               handleDeleteItem
             )
           )}
@@ -169,46 +234,173 @@ const AdminDashboard: React.FC = () => {
       );
     }
 
-    // Fallback if activeTab is somehow invalid
     return <p className="text-red-500">Error: Invalid tab '{activeTab}' selected.</p>;
   };
 
   return (
-    <div className="p-4 md:p-6 bg-gray-100 min-h-screen">
-      {/* Use AdminHeader Component */}
-      <AdminHeader
-        resetToDefaults={resetToDefaults}
-        handleLogout={handleLogout}
-        logoutError={logoutError}
-      />
+    <div className="min-h-screen bg-gray-100">
+      {/* Top Navigation Bar */}
+      <nav className="bg-white shadow-md fixed w-full z-10">
+        <div className="px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Sidebar Toggle Button */}
+            <button
+              onClick={() => {
+                if (isMobile) {
+                  setIsSidebarOpen(!isSidebarOpen);
+                } else {
+                  setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed);
+                }
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <LayoutDashboard size={24} />
+            </button>
+            {/* Search Input - Hidden on small screens */}
+            <div className="relative hidden md:block">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+            </div>
+          </div>
 
-      {/* Use AdminTabs Component */}
-      <AdminTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        isValidTranslationKey={isValidTranslationKey}
-        getStaticSectionName={getStaticSectionName}
-      />
+          <div className="flex items-center space-x-4">
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="text-gray-500 hover:text-gray-700 relative"
+              >
+                <Bell size={20} />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  3
+                </span>
+              </button>
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 border border-gray-200">
+                  <div className="px-4 py-2 border-b border-gray-200">
+                    <h3 className="font-semibold text-gray-700">Notifications</h3>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                      <p className="text-sm text-gray-800">New comment on your post</p>
+                      <p className="text-xs text-gray-500">2 minutes ago</p>
+                    </div>
+                    <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                      <p className="text-sm text-gray-800">Your page was viewed 100 times</p>
+                      <p className="text-xs text-gray-500">1 hour ago</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-      {/* Tab Content Area */}
-      <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
-        {renderActiveTabContent()}
-      </div>
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
+              >
+                <User size={20} />
+                <span>Admin</span>
+                <ChevronDown size={16} />
+              </button>
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-200">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-2 text-left text-red-600 hover:bg-gray-50 flex items-center space-x-2"
+                  >
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
 
-      {/* Save Button Area */}
-      <div className="mt-6 text-right flex justify-end items-center gap-4">
-        {saveStatus && <span className="text-green-600 text-sm transition-opacity duration-300">{saveStatus}</span>}
-        <button
-          onClick={() => saveChanges()} // Call saveChanges from the hook
-          className={`bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-5 rounded focus:outline-none focus:shadow-outline transition-all duration-150 text-sm ${
-            // Disable save button for tabs that save internally
-            activeTab === 'styleEditor' || activeTab === 'socialLinks' || activeTab === 'pages' ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
-          }`}
-          disabled={activeTab === 'styleEditor' || activeTab === 'socialLinks' || activeTab === 'pages'}
-          title={activeTab === 'styleEditor' || activeTab === 'socialLinks' || activeTab === 'pages' ? "Changes are saved directly within this tab" : "Save text content changes"}
+      {/* Sidebar and Main Content */}
+      <div className="flex pt-16">
+        {/* Overlay for Mobile Sidebar */}
+        {isMobile && isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-20"
+            onClick={() => setIsSidebarOpen(false)}
+          ></div>
+        )}
+
+        {/* Sidebar */}
+        <aside
+          className={`fixed top-16 h-[calc(100vh-4rem)] bg-gray-800 text-white transition-transform duration-300 ease-in-out z-30 md:translate-x-0 md:transition-all md:duration-300
+            ${isMobile ? (isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64') : (isDesktopSidebarCollapsed ? 'w-20' : 'w-64')}
+          `}
         >
-          Save Content Changes
-        </button>
+          <nav className="p-4 overflow-y-auto h-full">
+            {navItems.map((item) => (
+              <button
+                key={item.tab}
+                onClick={() => setActiveTab(item.tab)}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  activeTab === item.tab
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
+                {item.icon}
+                {/* Show label if sidebar is open on mobile OR not collapsed on desktop */}
+                <span className={`${(isMobile && isSidebarOpen) || (!isMobile && !isDesktopSidebarCollapsed) ? 'inline' : 'hidden'} md:inline`}>
+                  {item.label}
+                </span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main
+          className={`flex-1 transition-all duration-300 pt-0 md:pt-0 ${
+            isMobile ? 'ml-0' : (isDesktopSidebarCollapsed ? 'md:ml-20' : 'md:ml-64')
+          }`}
+        >
+          {/* Padding adjusted for mobile vs desktop */}
+          <div className="p-4 md:p-8">
+            {/* Breadcrumb */}
+            <div className="mb-4 md:mb-6">
+              <h1 className="text-2xl font-bold text-gray-800">
+                {activeTab ? getStaticSectionName(activeTab) : 'Dashboard'}
+              </h1>
+              <p className="text-sm text-gray-500">
+                Home / {activeTab ? getStaticSectionName(activeTab) : 'Dashboard'}
+              </p>
+            </div>
+
+            {/* Tab Content */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              {renderActiveTabContent()}
+            </div>
+
+            {/* Save Changes Button */}
+            {activeTab && activeTab !== 'styleEditor' && activeTab !== 'socialLinks' && activeTab !== 'pages' && (
+              <div className="mt-6 flex justify-end items-center gap-4">
+                {saveStatus && (
+                  <span className="text-green-600 text-sm">{saveStatus}</span>
+                )}
+                <button
+                  onClick={() => saveChanges()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                  disabled={isLoading}
+                >
+                  Save Changes
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );

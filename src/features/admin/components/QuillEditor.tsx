@@ -1,6 +1,7 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+import { Maximize2, Minimize2 } from 'lucide-react'; // Import icons for slider
 
 interface QuillEditorProps {
   value: string;
@@ -10,14 +11,19 @@ interface QuillEditorProps {
   className?: string;
 }
 
+const MIN_HEIGHT = 100; // Minimum editor height in pixels
+const MAX_HEIGHT = 800; // Maximum editor height in pixels
+const DEFAULT_HEIGHT = 200; // Default editor height in pixels
+
 const QuillEditor: React.FC<QuillEditorProps> = ({
   value,
   onChange,
   placeholder = "Enter content here...",
-  style = { minHeight: '200px' },
-  className = "mt-1 bg-white"
+  style = {}, // Remove default minHeight from here, controlled by state now
+  className = "mt-1" // Remove bg-white, applied directly to editor below
 }) => {
   const quillRef = useRef<ReactQuill>(null);
+  const [editorHeight, setEditorHeight] = useState(DEFAULT_HEIGHT);
 
   // --- Prevent page jump on picker click ---
   useEffect(() => {
@@ -154,18 +160,45 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     'direction', 'align', 'color', 'background', 'link', 'image', 'video'
   ], []);
 
+  // Note: For optimal mobile toolbar layout, global CSS might be needed if the toolbar overflows, e.g.:
+  // .ql-toolbar { flex-wrap: wrap; padding: 4px; } /* Allow toolbar items to wrap */
+  // .ql-snow .ql-formats { margin-right: 8px !important; margin-bottom: 4px; } /* Adjust spacing when wrapped */
+
   return (
-    <ReactQuill
-      theme="snow"
-      value={value}
-      onChange={onChange}
-      ref={quillRef}
-      modules={modules}
-      formats={formats}
-      className={className}
-      placeholder={placeholder}
-      style={style}
-    />
+    <div className={`quill-editor-container ${className}`}>
+      {/* Wrapper div controls the height */}
+      <div
+        className="quill-editor-wrapper border border-gray-300 rounded-md overflow-hidden" // Add border and rounding here
+        style={{ ...style, height: `${editorHeight}px`, display: 'flex', flexDirection: 'column' }} // Apply dynamic height, use flex column
+      >
+        <ReactQuill
+          theme="snow"
+          value={value}
+          onChange={onChange}
+          ref={quillRef}
+          modules={modules}
+          formats={formats}
+          className="bg-white flex-grow" // Use flex-grow to fill height
+          placeholder={placeholder}
+          style={{ height: 'calc(100% - 42px)' }} // Adjust height calculation based on toolbar height (approx 42px)
+        />
+      </div>
+      {/* Height Adjustment Slider */}
+      <div className="flex items-center space-x-2 mt-2 text-gray-600">
+        <Minimize2 size={16} />
+        <input
+          type="range"
+          min={MIN_HEIGHT}
+          max={MAX_HEIGHT}
+          value={editorHeight}
+          onChange={(e) => setEditorHeight(Number(e.target.value))}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+          aria-label="Adjust editor height"
+        />
+        <Maximize2 size={16} />
+        <span className="text-xs w-12 text-right">{editorHeight}px</span>
+      </div>
+    </div>
   );
 };
 

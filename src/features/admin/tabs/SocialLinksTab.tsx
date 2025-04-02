@@ -258,62 +258,87 @@ const SocialLinksTab: React.FC = () => {
         </button>
       )}
 
-      {/* Links List */}
+      {/* Links List - Responsive Layout */}
       {!isLoading && links.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-gray-700 rounded">
-            <thead>
-              <tr className="bg-gray-600">
-                <th className="text-left py-2 px-3 text-white">Order</th>
-                <th className="text-left py-2 px-3 text-white">Name</th>
-                <th className="text-left py-2 px-3 text-white">URL</th>
-                <th className="text-left py-2 px-3 text-white">Icon</th>
-                <th className="text-left py-2 px-3 text-white">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {links.map((link, index) => (
-                <tr key={link.id} className="border-b border-gray-600 hover:bg-gray-600/50">
-                  <td className="py-2 px-3">{link.order}</td>
-                  <td className="py-2 px-3">{link.name}</td>
-                  <td className="py-2 px-3"><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline truncate max-w-xs inline-block">{link.url}</a></td>
-                  <td className="py-2 px-3">{link.icon}</td>
-                  <td className="py-2 px-3 flex items-center gap-1">
-                     {/* Move Up Button */}
-                     <button
-                       onClick={() => handleMoveUp(index)}
-                       disabled={index === 0}
-                       className={`p-1 ${index === 0 ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-blue-300'}`}
-                       title="Move Up"
-                     >
-                       <ArrowUp size={18} />
-                     </button>
-                     {/* Move Down Button */}
-                     <button
-                       onClick={() => handleMoveDown(index)}
-                       disabled={index === links.length - 1}
-                       className={`p-1 ${index === links.length - 1 ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-blue-300'}`}
-                       title="Move Down"
-                     >
-                       <ArrowDown size={18} />
-                     </button>
-                     {/* Edit Button */}
-                    <button onClick={() => startEditing(link)} className="text-yellow-400 hover:text-yellow-300 p-1" title="Edit">
-                      <Edit size={18} />
-                    </button>
-                    {/* Delete Button */}
-                    <button onClick={() => handleDeleteLink(link.id)} className="text-red-500 hover:text-red-400 p-1" title="Delete">
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-4 md:space-y-0">
+          {/* Header Row (Visible on Medium+ screens) */}
+          <div className="hidden md:flex bg-gray-600 rounded-t-lg p-3 font-semibold text-white">
+            <div className="w-1/12 px-2">Order</div>
+            <div className="w-3/12 px-2">Name</div>
+            <div className="w-4/12 px-2">URL</div>
+            <div className="w-2/12 px-2">Icon</div>
+            <div className="w-2/12 px-2 text-right">Actions</div>
+          </div>
+
+          {/* Link Items */}
+          {links.map((link, index) => (
+            <div
+              key={link.id}
+              className="bg-gray-700 md:bg-transparent md:hover:bg-gray-600/50 rounded-lg md:rounded-none p-4 md:p-0 md:flex md:items-center border-b border-gray-600 md:border-gray-600 last:border-b-0 md:last:border-b"
+            >
+              {/* Mobile Card Layout */}
+              <div className="md:hidden space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-lg text-white">{link.name}</span>
+                  <span className="text-sm text-gray-400">(Order: {link.order})</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-400">URL: </span>
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">{link.url}</a>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-400">Icon: </span>
+                  <span className="text-gray-300">{link.icon}</span>
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-600 mt-2">
+                  {/* Action Buttons - Mobile */}
+                  <button onClick={() => handleMoveUp(index)} disabled={index === 0} className={`p-1 ${index === 0 ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-blue-300'}`} title="Move Up"><ArrowUp size={18} /></button>
+                  <button onClick={() => handleMoveDown(index)} disabled={index === links.length - 1} className={`p-1 ${index === links.length - 1 ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-blue-300'}`} title="Move Down"><ArrowDown size={18} /></button>
+                  <button onClick={() => startEditing(link)} className="text-yellow-400 hover:text-yellow-300 p-1" title="Edit"><Edit size={18} /></button>
+                  <button onClick={() => handleDeleteLink(link.id)} className="text-red-500 hover:text-red-400 p-1" title="Delete"><Trash2 size={18} /></button>
+                </div>
+              </div>
+
+              {/* Desktop Table-like Layout */}
+              <div className="hidden md:flex w-full items-center py-2">
+                <div className="w-1/12 px-2">{link.order}</div>
+                <div className="w-3/12 px-2 truncate">{link.name}</div>
+                <div className="w-4/12 px-2 truncate">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{link.url}</a>
+                </div>
+                <div className="w-2/12 px-2">{link.icon}</div>
+                <div className="w-2/12 px-2 flex items-center justify-end gap-1">
+                  {/* Action Buttons - Desktop */}
+                  <button
+                    onClick={() => handleMoveUp(index)}
+                    disabled={index === 0}
+                    className={`p-1 ${index === 0 ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-blue-300'}`}
+                    title="Move Up"
+                  >
+                    <ArrowUp size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleMoveDown(index)}
+                    disabled={index === links.length - 1}
+                    className={`p-1 ${index === links.length - 1 ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-blue-300'}`}
+                    title="Move Down"
+                  >
+                    <ArrowDown size={18} />
+                  </button>
+                  <button onClick={() => startEditing(link)} className="text-yellow-400 hover:text-yellow-300 p-1" title="Edit">
+                    <Edit size={18} />
+                  </button>
+                  <button onClick={() => handleDeleteLink(link.id)} className="text-red-500 hover:text-red-400 p-1" title="Delete">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
-       {!isLoading && links.length === 0 && !isAdding && (
-         <p className="text-center text-gray-400 mt-4">No social links found. Add one!</p>
+      {!isLoading && links.length === 0 && !isAdding && (
+        <p className="text-center text-gray-400 mt-4">No social links found. Add one!</p>
        )}
     </div>
   );
