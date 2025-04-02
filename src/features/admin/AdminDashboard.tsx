@@ -13,7 +13,7 @@ import {
   ChevronDown,
   Bell,
   User,
-  // BarChart2, // Removed unused icon
+  Menu, // Added Menu icon
   Eye,
   MessageSquare,
   FileText,
@@ -38,8 +38,14 @@ import { renderFields, getStaticSectionName, isValidTranslationKey } from './uti
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Renamed for clarity, controls mobile overlay
-  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false); // For desktop collapse
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls mobile overlay
+
+  // Initialize desktop sidebar state from localStorage, default to false (expanded)
+  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(() => {
+    const savedState = localStorage.getItem('desktopSidebarCollapsed');
+    return savedState ? JSON.parse(savedState) : false;
+  });
+
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // md breakpoint
@@ -57,6 +63,15 @@ const AdminDashboard: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Effect to save desktop sidebar state to localStorage
+  useEffect(() => {
+    // Only run this effect if not on mobile, as localStorage is for desktop state
+    if (!isMobile) {
+      localStorage.setItem('desktopSidebarCollapsed', JSON.stringify(isDesktopSidebarCollapsed));
+    }
+    // If switching to mobile, ensure the desktop state doesn't affect mobile overlay
+    // (localStorage state is ignored when isMobile is true)
+  }, [isDesktopSidebarCollapsed, isMobile]);
 
   // Use the custom hook for data management
   const {
@@ -252,9 +267,16 @@ const AdminDashboard: React.FC = () => {
                   setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed);
                 }
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 md:hidden" // Hide on desktop initially
             >
-              <LayoutDashboard size={24} />
+              <Menu size={24} />
+            </button>
+            {/* Desktop Sidebar Toggle */}
+            <button
+              onClick={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
+              className="text-gray-500 hover:text-gray-700 hidden md:block" // Show only on desktop
+            >
+              <Menu size={24} />
             </button>
             {/* Search Input - Hidden on small screens */}
             <div className="relative hidden md:block">
@@ -344,7 +366,13 @@ const AdminDashboard: React.FC = () => {
             {navItems.map((item) => (
               <button
                 key={item.tab}
-                onClick={() => setActiveTab(item.tab)}
+                onClick={() => {
+                  setActiveTab(item.tab);
+                  // Close mobile sidebar on tab selection
+                  if (isMobile) {
+                    setIsSidebarOpen(false);
+                  }
+                }}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                   activeTab === item.tab
                     ? 'bg-blue-600 text-white'
@@ -352,8 +380,8 @@ const AdminDashboard: React.FC = () => {
                 }`}
               >
                 {item.icon}
-                {/* Show label if sidebar is open on mobile OR not collapsed on desktop */}
-                <span className={`${(isMobile && isSidebarOpen) || (!isMobile && !isDesktopSidebarCollapsed) ? 'inline' : 'hidden'} md:inline`}>
+                {/* Show label only when sidebar is expanded (mobile or desktop) */}
+                <span className={`${(isMobile && isSidebarOpen) || (!isMobile && !isDesktopSidebarCollapsed) ? 'inline' : 'hidden'}`}>
                   {item.label}
                 </span>
               </button>
@@ -363,11 +391,11 @@ const AdminDashboard: React.FC = () => {
 
         {/* Main Content */}
         <main
-          className={`flex-1 transition-all duration-300 pt-0 md:pt-0 ${
+          className={`flex-1 transition-all duration-300 ${ // Removed pt-0 md:pt-0
             isMobile ? 'ml-0' : (isDesktopSidebarCollapsed ? 'md:ml-20' : 'md:ml-64')
           }`}
         >
-          {/* Padding adjusted for mobile vs desktop */}
+          {/* Padding for content area */}
           <div className="p-4 md:p-8">
             {/* Breadcrumb */}
             <div className="mb-4 md:mb-6">

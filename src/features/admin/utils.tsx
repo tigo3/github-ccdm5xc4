@@ -108,7 +108,8 @@ export const renderFields = (
 
     if (typeof value === 'string') {
       return (
-        <div key={keyString} className="mb-4">
+        // Add responsive padding to the container div for slight spacing adjustment on mobile
+        <div key={keyString} className="mb-4 px-1 sm:px-0"> 
           <label htmlFor={keyString} className="block text-sm font-medium text-gray-700 capitalize mb-1">
             {/* More descriptive labels */}
             {key.replace(/([A-Z])/g, ' $1')}
@@ -118,7 +119,8 @@ export const renderFields = (
               id={keyString}
               name={keyString}
               rows={value.length > 100 ? 4 : 2} // Keep dynamic rows
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white" // Ensure white background when editing
+              // Removed mt-1, label already has mb-1. Ensure consistent padding. Added flex-1.
+              className="block w-full flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white" 
               value={value}
               onChange={(e) => handleChange(currentPath, e.target.value)}
               onBlur={() => setEditingPath(null)} // Hide input on blur
@@ -127,7 +129,8 @@ export const renderFields = (
           ) : (
             // Improved display for non-editing state
             <div
-              className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 p-2 cursor-pointer hover:bg-gray-100 min-h-[50px] whitespace-pre-wrap text-gray-800" // Added background, border, text color
+              // Removed mt-1, label already has mb-1. Ensure consistent padding. Added flex-1.
+              className="block w-full flex-1 rounded-md border border-gray-200 bg-gray-50 p-2 cursor-pointer hover:bg-gray-100 min-h-[50px] whitespace-pre-wrap text-gray-800" 
               onClick={() => setEditingPath(keyString)} // Enable editing on click
             >
               {value || <span className="text-gray-400 italic">Click to edit...</span>}
