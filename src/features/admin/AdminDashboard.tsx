@@ -30,6 +30,7 @@ import StyleEditorTab from './tabs/StyleEditorTab';
 import SocialLinksTab from './tabs/SocialLinksTab';
 import GeneralInfoTab from './tabs/GeneralInfoTab';
 import PagesTab from './tabs/PagesTab';
+import ImageUploader from './components/ImageUploader'; // Import the new component
 
 // Import Utilities and Types
 import { renderFields, getStaticSectionName, isValidTranslationKey } from './utils';
@@ -189,6 +190,11 @@ const AdminDashboard: React.FC = () => {
     }
     if (activeTab === 'pages') {
       return <PagesTab />;
+    }
+
+    // Add condition for the media tab
+    if (activeTab === 'media') {
+      return <ImageUploader />;
     }
 
     if (isValidTranslationKey(activeTab)) {
