@@ -1,18 +1,28 @@
 import React from 'react';
+import defaultLogo from '/logo.png'; // Import the logo relative to the public directory
 
 interface LogoProps {
-  logoUrl?: string; // Make logoUrl optional
+  logoUrl?: string;
+  altText?: string;
+  className?: string;
+  width?: number | string;
+  height?: number | string;
 }
 
-const Logo: React.FC<LogoProps> = ({ logoUrl }) => {
-  const defaultLogoUrl = "https://raw.githubusercontent.com/tiger3homs/home/refs/heads/main/public/logo.png";
-  
+const Logo: React.FC<LogoProps> = ({
+  logoUrl,
+  altText = "Site Logo", // More descriptive default alt text
+  className = "", // Default to empty string
+}) => {
+  const effectiveLogoUrl = logoUrl || defaultLogo;
+
   return (
-    <img 
-      src={logoUrl || defaultLogoUrl} // Use logoUrl if provided, otherwise fallback to default
-      alt="Logo" 
-      className="mx-auto mb-6 w-24 h-24"
-      style={{ pointerEvents: 'none', userSelect: 'none' }}
+    <img
+      src={effectiveLogoUrl}
+      alt={altText}
+      // Apply passed className, keep pointer/select styles
+      className={`logo-image ${className}`} // Add a base class and merge with passed className
+
     />
   );
 };
