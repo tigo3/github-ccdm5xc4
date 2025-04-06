@@ -9,7 +9,7 @@ let supabase: SupabaseClient | null = null;
 if (supabaseUrl && supabaseAnonKey) {
   try {
     supabase = createClient(supabaseUrl, supabaseAnonKey);
-    console.log('Supabase client initialized.');
+    // console.log('Supabase client initialized.'); // Log removed
   } catch (error) {
     console.error('Error initializing Supabase client:', error);
   }

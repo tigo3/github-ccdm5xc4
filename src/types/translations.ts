@@ -1,4 +1,4 @@
-import { Project, ProjectsSection } from '../features/admin/sections/Projects/types'; // Adjust import path
+import { ProjectsSection } from '../features/admin/sections/Projects/types'; // Adjust import path
 import { ServiceItem } from '../features/admin/sections/Services/types'; // Adjust import path
 
 // Define the overall structure for the 'en' translations object explicitly

@@ -26,21 +26,21 @@ export function useTranslations(language: keyof TranslationsType = 'en') {
     setError(null);
 
     const translationsDocRef = doc(db, 'translations', language);
-    console.log(`useTranslations: Setting up listener for translations/${language}...`);
+    // console.log(`useTranslations: Setting up listener for translations/${language}...`); // Removed log
 
     const unsubscribe = onSnapshot(translationsDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as Partial<LanguageTranslations>;
-        console.log(`useTranslations: Received translations update for ${language}:`, data);
+        // console.log(`useTranslations: Received translations update for ${language}:`, data); // Removed log
         // Merge Firestore data with defaults to ensure all keys exist
-        setTranslations(prev => ({
+        setTranslations(() => ({
           ...defaultTranslations[language], // Start with defaults
           ...data                     // Override with Firestore data
         }));
       } else {
         // Document doesn't exist, use defaults
         setTranslations(defaultTranslations[language]);
-        console.log(`useTranslations: No translations document found for ${language}, using defaults.`);
+        // console.log(`useTranslations: No translations document found for ${language}, using defaults.`); // Removed log
       }
       setIsLoading(false);
     }, (err) => {
@@ -52,7 +52,7 @@ export function useTranslations(language: keyof TranslationsType = 'en') {
 
     // Cleanup function
     return () => {
-        console.log(`useTranslations: Unsubscribing from translations/${language} listener.`);
+        // console.log(`useTranslations: Unsubscribing from translations/${language} listener.`); // Removed log
         unsubscribe();
     };
   }, [language]); // Re-run effect if language changes

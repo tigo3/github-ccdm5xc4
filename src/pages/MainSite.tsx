@@ -1,7 +1,7 @@
 // src/pages/MainSite.tsx
 import React, { useState, useMemo, useEffect, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
-import { Page } from '../features/admin/types'; // Adjusted import path
+import { Page } from '../features/admin/sections/Pages/types'; // Adjusted import path
 import { getProjectsData as defaultGetProjectsData } from '../data/ProjectsSectionData'; // Adjusted import path
 import Logo from '../components/Logo'; // Adjusted import path
 import { useTranslations } from '../hooks/useTranslations'; // Adjusted import path

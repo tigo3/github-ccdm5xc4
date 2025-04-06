@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Page } from '../features/admin/types'; // Import the Page type
+import { Page } from '../features/admin/sections/Pages/types'; // Import the Page type
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles to apply formatting
 
 // Simple component to render dynamic page content

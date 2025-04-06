@@ -46,7 +46,7 @@ export function useSocialLinks() {
         const querySnapshot = await getDocs(q);
         const links = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SocialLink));
         setSocialLinks(links);
-        console.log("useSocialLinks: Fetched social links:", links);
+        // console.log("useSocialLinks: Fetched social links:", links); // Removed log
       } catch (err) {
         console.error("useSocialLinks: Error fetching social links:", err);
         setError(err instanceof Error ? err : new Error(String(err)));

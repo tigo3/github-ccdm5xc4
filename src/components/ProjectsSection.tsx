@@ -1,5 +1,5 @@
 import React from 'react';
-import { Github, ExternalLink, Code2 } from 'lucide-react';
+import { ExternalLink, Code2 } from 'lucide-react';
 
 interface Project {
   title: string;
