@@ -1,42 +1,68 @@
+// React & Router
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Firebase
 import { signOut } from "firebase/auth";
-import { NotificationProvider } from '../../context/NotificationContext'; // Import NotificationProvider
-import ToastNotification from '../../components/common/ToastNotification'; // Import ToastNotification
-import ConfirmationModal from '../../components/common/ConfirmationModal'; // Import ConfirmationModal
-import { 
-  LayoutDashboard, 
-  FileEdit, 
-  Palette, 
-  Link2, 
-  Settings, 
-  LogOut,
-  Image,
-  ChevronDown,
-  User,
-  Menu, // Added Menu icon
-  Eye,
-  MessageSquare,
-  FileText,
-  Star
-} from 'lucide-react';
 import { auth } from '../../config/firebaseConfig';
 
-// Import Hooks and Components
-import { useAdminData } from './hooks/useAdminData';
-// import AdminTabs from './components/AdminTabs'; // Removed unused component
+// UI Libraries & Icons
+// UI Libraries & Icons
+import {
+  LayoutDashboard, FileEdit, Palette, Link2, Settings, FileText, // Added FileText back
+  Image as ImageIcon
+} from 'lucide-react';
 
-// Import Tab Components
+// Context
+import { NotificationProvider } from '../../context/NotificationContext';
+
+// Common Components
+import ToastNotification from '../../components/common/ToastNotification'; // Keep if used directly, else remove if only via Provider
+import ConfirmationModal from '../../components/common/ConfirmationModal'; // Keep if used directly, else remove if only via Provider
+
+// Feature Hooks
+import { useAdminData } from './hooks/useAdminData';
+
+// Feature Components
+import ImageUploader from './components/ImageUploader';
+import TopNavBar from './components/TopNavBar';
+import Sidebar from './components/Sidebar';
+import TabContentRenderer from './components/TabContentRenderer'; // Import the new TabContentRenderer
+
+// Feature Tab Components
 import ProjectsTab from './tabs/ProjectsTab';
 import ServicesTab from './tabs/ServicesTab';
 import StyleEditorTab from './tabs/StyleEditorTab';
 import SocialLinksTab from './tabs/SocialLinksTab';
 import GeneralInfoTab from './tabs/GeneralInfoTab';
 import PagesTab from './tabs/PagesTab';
-import ImageUploader from './components/ImageUploader'; // Import the new component
 
-// Import Utilities and Types
+// Feature Utilities & Types
 import { renderFields, getStaticSectionName, isValidTranslationKey } from './utils';
+// Note: Types import might be needed if './types' exists and is used directly
+
+// --- Constants ---
+
+// Mock data for dashboard widgets (Consider moving to a separate file or fetching if dynamic)
+const stats = {
+  pageViews: '1,234',
+  totalPages: '12',
+  comments: '45',
+  averageRating: '4.8'
+};
+
+// Navigation items (Consider moving to a configuration file if it grows)
+const navItems = [
+  { icon: <LayoutDashboard size={20} />, label: 'Dashboard', tab: 'dashboard' },
+  { icon: <FileText size={20} />, label: 'Pages', tab: 'pages' },
+  { icon: <FileEdit size={20} />, label: 'Projects', tab: 'projects' },
+  { icon: <ImageIcon size={20} />, label: 'Media', tab: 'media' }, // Use the alias ImageIcon
+  { icon: <Palette size={20} />, label: 'Appearance', tab: 'styleEditor' },
+  { icon: <Link2 size={20} />, label: 'Social Links', tab: 'socialLinks' },
+  { icon: <Settings size={20} />, label: 'Settings', tab: 'generalInfo' },
+];
+
+// --- Component ---
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -47,8 +73,8 @@ const AdminDashboard: React.FC = () => {
     const savedState = localStorage.getItem('desktopSidebarCollapsed');
     return savedState ? JSON.parse(savedState) : false;
   });
-
-  const [showUserMenu, setShowUserMenu] = useState(false);
+ 
+  // Removed showUserMenu state, now managed within TopNavBar
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // md breakpoint
 
   // Effect to handle window resize
@@ -88,17 +114,10 @@ const AdminDashboard: React.FC = () => {
   } = useAdminData();
 
   // Local UI state
-  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>('dashboard'); // Default to dashboard
   const [editingPath, setEditingPath] = useState<string | null>(null);
   // const [logoutError, setLogoutError] = useState(''); // Removed unused state
 
-  // Mock data for dashboard widgets
-  const stats = {
-    pageViews: '1,234',
-    totalPages: '12',
-    comments: '45',
-    averageRating: '4.8'
-  };
 
   // Logout handler
   const handleLogout = async () => {
@@ -121,242 +140,40 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Navigation items
-  const navItems = [
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', tab: 'dashboard' },
-    { icon: <FileText size={20} />, label: 'Pages', tab: 'pages' },
-    { icon: <FileEdit size={20} />, label: 'Projects', tab: 'projects' },
-    { icon: <Image size={20} />, label: 'Media', tab: 'media' },
-    { icon: <Palette size={20} />, label: 'Appearance', tab: 'styleEditor' },
-    { icon: <Link2 size={20} />, label: 'Social Links', tab: 'socialLinks' },
-    { icon: <Settings size={20} />, label: 'Settings', tab: 'generalInfo' },
-  ];
 
-  const renderDashboardContent = () => {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-700 font-semibold">Page Views</h3>
-            <Eye className="text-blue-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.pageViews}</p>
-          <p className="text-sm text-gray-500 mt-2">Last 30 days</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-700 font-semibold">Total Pages</h3>
-            <FileText className="text-green-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.totalPages}</p>
-          <p className="text-sm text-gray-500 mt-2">Published content</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-700 font-semibold">Comments</h3>
-            <MessageSquare className="text-purple-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.comments}</p>
-          <p className="text-sm text-gray-500 mt-2">Awaiting response</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-700 font-semibold">Average Rating</h3>
-            <Star className="text-yellow-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.averageRating}</p>
-          <p className="text-sm text-gray-500 mt-2">Based on feedback</p>
-        </div>
-      </div>
-    );
-  };
-
-  const renderActiveTabContent = () => {
-    if (isLoading) {
-      return <div className="flex items-center justify-center py-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>;
-    }
-
-    if (!activeTab || activeTab === 'dashboard') {
-      return renderDashboardContent();
-    }
-
-    if (activeTab === 'styleEditor') {
-      return <StyleEditorTab />;
-    }
-    if (activeTab === 'socialLinks') {
-      return <SocialLinksTab />;
-    }
-    if (activeTab === 'pages') {
-      return <PagesTab />;
-    }
-
-    // Add condition for the media tab
-    if (activeTab === 'media') {
-      return <ImageUploader />;
-    }
-
-    if (isValidTranslationKey(activeTab)) {
-      const staticTabTitle = getStaticSectionName(activeTab);
-
-      return (
-        <>
-          <h3 className="text-xl font-semibold mb-4 text-gray-700 capitalize">
-            {staticTabTitle}
-          </h3>
-          {activeTab === 'projects' ? (
-            <ProjectsTab
-              data={translations.en.projects}
-              path={[activeTab]}
-              handleChange={handleInputChange}
-              editingPath={editingPath}
-              setEditingPath={setEditingPath}
-              handleAddProject={handleAddNewProject}
-              handleDelete={handleDeleteItem}
-              renderFields={renderFields}
-            />
-          ) : activeTab === 'services' ? (
-            <ServicesTab
-              data={translations.en.services}
-              path={[activeTab]}
-              handleChange={handleInputChange}
-              editingPath={editingPath}
-              setEditingPath={setEditingPath}
-              handleAddService={handleAddNewService}
-              handleDelete={handleDeleteItem}
-              renderFields={renderFields}
-            />
-          ) : activeTab === 'generalInfo' ? (
-            <GeneralInfoTab
-              translations={translations}
-              handleInputChange={handleInputChange}
-              editingPath={editingPath}
-              setEditingPath={setEditingPath}
-              getStaticSectionName={getStaticSectionName}
-            />
-          ) : (
-            renderFields(
-              translations.en[activeTab],
-              [activeTab],
-              handleInputChange,
-              editingPath,
-              setEditingPath,
-              undefined,
-              handleDeleteItem
-            )
-          )}
-        </>
-      );
-    }
-
-    return <p className="text-red-500">Error: Invalid tab '{activeTab}' selected.</p>;
-  };
+  // Removed renderDashboardContent and renderActiveTabContent functions
+  // Their logic is now handled by TabContentRenderer
 
   return (
-    <NotificationProvider> {/* Wrap with NotificationProvider */}
+    <NotificationProvider>
       <div className="min-h-screen bg-gray-100">
-        {/* Top Navigation Bar */}
-        <nav className="bg-white shadow-md fixed w-full z-10">
-        <div className="px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {/* Sidebar Toggle Button */}
-            <button
-              onClick={() => {
-                if (isMobile) {
-                  setIsSidebarOpen(!isSidebarOpen);
-                } else {
-                  setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed);
-                }
-              }}
-              className="text-gray-500 hover:text-gray-700 md:hidden" // Hide on desktop initially
-            >
-              <Menu size={24} />
-            </button>
-            {/* Desktop Sidebar Toggle */}
-            <button
-              onClick={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
-              className="text-gray-500 hover:text-gray-700 hidden md:block" // Show only on desktop
-            >
-              <Menu size={24} />
-            </button>
-            {/* Search Input Removed */}
-          </div>
+        {/* Use the new TopNavBar component */}
+        <TopNavBar
+          isMobile={isMobile}
+          isSidebarOpen={isSidebarOpen}
+          isDesktopSidebarCollapsed={isDesktopSidebarCollapsed}
+          onToggleMobileSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          onToggleDesktopSidebar={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
+          onLogout={handleLogout}
+        />
 
-          <div className="flex items-center space-x-4">
-            {/* Notifications Removed */}
-
-            {/* User Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
-              >
-                <User size={20} />
-                <span>Admin</span>
-                <ChevronDown size={16} />
-              </button>
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-200">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full px-4 py-2 text-left text-red-600 hover:bg-gray-50 flex items-center space-x-2"
-                  >
-                    <LogOut size={16} />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Sidebar and Main Content */}
-      <div className="flex pt-16">
-        {/* Overlay for Mobile Sidebar */}
-        {isMobile && isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-20"
-            onClick={() => setIsSidebarOpen(false)}
-          ></div>
-        )}
-
-        {/* Sidebar */}
-        <aside
-          className={`fixed top-16 h-[calc(100vh-4rem)] bg-gray-800 text-white transition-transform duration-300 ease-in-out z-30 md:translate-x-0 md:transition-all md:duration-300
-            ${isMobile ? (isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64') : (isDesktopSidebarCollapsed ? 'w-20' : 'w-64')}
-          `}
-        >
-          <nav className="p-4 overflow-y-auto h-full">
-            {navItems.map((item) => (
-              <button
-                key={item.tab}
-                onClick={() => {
-                  setActiveTab(item.tab);
-                  // Close mobile sidebar on tab selection
-                  if (isMobile) {
-                    setIsSidebarOpen(false);
-                  }
-                }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === item.tab
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                }`}
-              >
-                {item.icon}
-                {/* Show label only when sidebar is expanded (mobile or desktop) */}
-                <span className={`${(isMobile && isSidebarOpen) || (!isMobile && !isDesktopSidebarCollapsed) ? 'inline' : 'hidden'}`}>
-                  {item.label}
-                </span>
-              </button>
-            ))}
-          </nav>
-        </aside>
+        {/* Sidebar and Main Content */}
+        <div className="flex pt-16">
+          {/* Use the new Sidebar component */}
+          <Sidebar
+            isMobile={isMobile}
+            isSidebarOpen={isSidebarOpen}
+            isDesktopSidebarCollapsed={isDesktopSidebarCollapsed}
+            activeTab={activeTab}
+            navItems={navItems} // Pass navItems defined above
+            onTabClick={(tab) => {
+              setActiveTab(tab);
+              if (isMobile) {
+                setIsSidebarOpen(false); // Close mobile sidebar on tab selection
+              }
+            }}
+            onCloseMobileSidebar={() => setIsSidebarOpen(false)} // Handler for overlay click
+          />
 
         {/* Main Content */}
         <main
@@ -378,7 +195,18 @@ const AdminDashboard: React.FC = () => {
 
             {/* Tab Content */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              {renderActiveTabContent()}
+              {/* Use the TabContentRenderer component */}
+              <TabContentRenderer
+                activeTab={activeTab}
+                isLoading={isLoading}
+                translations={translations}
+                editingPath={editingPath}
+                setEditingPath={setEditingPath}
+                handleInputChange={handleInputChange}
+                handleAddNewProject={handleAddNewProject}
+                handleAddNewService={handleAddNewService}
+                handleDeleteItem={handleDeleteItem}
+              />
             </div>
 
             {/* Save Changes Button */}
