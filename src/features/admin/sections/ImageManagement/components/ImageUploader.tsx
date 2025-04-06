@@ -27,12 +27,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUploadSuccess }) => {
         <ImageUploadArea
           isDragging={uploadHook.isDragging}
           error={uploadHook.error} // Show upload-specific errors here
+          previewUrl={uploadHook.previewUrl} // Pass previewUrl down
           fileInputRef={uploadHook.fileInputRef}
           handleDrop={uploadHook.handleDrop}
           handleDragOver={uploadHook.handleDragOver}
           handleDragLeave={uploadHook.handleDragLeave}
           triggerFileInput={uploadHook.triggerFileInput}
           handleInputChange={uploadHook.handleInputChange}
+          handleUrlUpload={uploadHook.handleUrlUpload}
         />
       ) : (
         <ImageUploadStatus

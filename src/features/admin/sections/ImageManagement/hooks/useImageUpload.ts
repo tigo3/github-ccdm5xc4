@@ -166,6 +166,93 @@ export const useImageUpload = ({ onUploadSuccess, onUploadComplete }: UseImageUp
     }
   };
 
+  // --- New Function: Handle Upload from URL ---
+  const handleUrlUpload = async (imageUrl: string) => {
+    if (!supabase) {
+      setError('Supabase client is not initialized.');
+      setStatus('error');
+      showToast('Supabase client not initialized.', 'error');
+      onUploadComplete?.();
+      return;
+    }
+
+    setStatus('fetching_url'); // Set status to fetching URL first
+    setError(null);
+    setPreviewUrl(null); // Clear previous preview
+    setSelectedFile(null); // Clear any selected file
+    setUploadedUrl(null); // Clear previous upload URL
+    setCopyButtonText('Copy Link');
+
+    try {
+      // --- Add check for blob: URLs ---
+      if (imageUrl.startsWith('blob:')) {
+        throw new Error('Pasting blob: URLs is not supported. Please upload the original image file directly.');
+      }
+      // --- End check ---
+
+      // 1. Fetch the image data
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+
+      // 2. Check content type
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.startsWith('image/')) {
+        throw new Error('URL does not point to a valid image file.');
+      }
+
+      // 3. Get image data as Blob
+      const blob = await response.blob();
+
+      // 4. Create a File object
+      // Try to get filename from URL, fallback to a generic name
+      let filename = 'uploaded_image';
+      try {
+        const urlParts = new URL(imageUrl);
+        const pathParts = urlParts.pathname.split('/');
+        if (pathParts.length > 0 && pathParts[pathParts.length - 1]) {
+          filename = pathParts[pathParts.length - 1];
+        }
+      } catch (e) {
+        console.warn("Could not parse filename from URL, using default.");
+      }
+      // Ensure filename has an extension based on MIME type if possible
+      const extension = contentType.split('/')[1];
+      if (extension && !filename.includes('.')) {
+          filename = `${filename}.${extension}`;
+      } else if (!filename.includes('.')) {
+          filename = `${filename}.png`; // Default fallback extension
+      }
+
+
+      const imageFile = new File([blob], filename, { type: contentType });
+
+      // 5. Set preview (optional but good UX)
+      const newPreviewUrl = URL.createObjectURL(imageFile);
+      setPreviewUrl(newPreviewUrl); // Show preview while uploading
+
+      // 6. Call the existing upload handler
+      await handleUpload(imageFile);
+
+    } catch (err) {
+      console.error("URL Upload process failed:", err);
+      // Check for specific errors like CORS
+      let errorMessage = `URL Upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`;
+      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+          // This often indicates a CORS issue or network problem
+          errorMessage += ". This might be due to network issues or CORS restrictions on the image server.";
+      }
+      setError(errorMessage);
+      setStatus('error');
+      showToast(errorMessage, 'error');
+      onUploadComplete?.(); // Ensure completion callback is called on error
+    }
+    // Note: handleUpload calls onUploadComplete in its finally block,
+    // so we don't need to call it here on success.
+  };
+  // --- End New Function ---
+
   // Clean up preview URL when the hook unmounts or selectedFile changes
   // useEffect(() => {
   //   let currentPreviewUrl = previewUrl; // Capture the URL
@@ -192,5 +279,6 @@ export const useImageUpload = ({ onUploadSuccess, onUploadComplete }: UseImageUp
     triggerFileInput,
     handleCopyLink,
     resetState, // Expose reset function
+    handleUrlUpload, // Expose the new function
   };
 };

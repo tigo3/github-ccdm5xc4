@@ -20,14 +20,21 @@ export const ImageUploadStatus: React.FC<ImageUploadStatusProps> = ({
   handleCopyLink,
   resetState,
 }) => {
-  const renderUploadingState = () => (
-    <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 text-center">
-      {/* Simple spinner */}
-      <svg className="animate-spin mx-auto h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <h2 className="text-lg font-medium text-gray-700">Uploading...</h2>
+  const renderProcessingState = (message: string) => (
+    <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 text-center relative">
+      {previewUrl && (
+        <div className="mb-4 rounded-xl overflow-hidden border border-gray-200 opacity-50">
+          <img src={previewUrl} alt="Processing preview" className="max-w-full max-h-48 object-contain mx-auto" />
+        </div>
+      )}
+      <div className={`absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-75 rounded-xl ${!previewUrl ? 'relative' : ''}`}>
+        {/* Simple spinner */}
+        <svg className="animate-spin mx-auto h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h2 className="text-lg font-medium text-gray-700">{message}</h2>
+      </div>
     </div>
   );
 
@@ -86,8 +93,10 @@ export const ImageUploadStatus: React.FC<ImageUploadStatusProps> = ({
   );
 
   switch (status) {
+    case 'fetching_url':
+        return renderProcessingState('Fetching image from URL...');
     case 'uploading':
-      return renderUploadingState();
+      return renderProcessingState('Uploading...');
     case 'success':
       return renderSuccessState();
     case 'error':
