@@ -1,8 +1,8 @@
 import React from 'react';
-import { useNotifications } from '../../../context/NotificationContext'; // Corrected import path
+import { useNotifications } from '../../../../context/NotificationContext'; // Corrected import path
 
-// Define the props type for the ProjectsTab component
-interface ProjectsTabProps {
+// Define the props type for the ProjectsSection component
+interface ProjectsSectionProps {
   data: any; // The 'projects' object from translations.en
   path: (string | number)[]; // The base path, e.g., ['projects']
   handleChange: (path: (string | number)[], value: string) => void;
@@ -21,7 +21,7 @@ interface ProjectsTabProps {
   ) => React.ReactNode;
 }
 
-const ProjectsTab: React.FC<ProjectsTabProps> = ({
+const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   data,
   path,
   handleChange,
@@ -95,4 +95,4 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({
   );
 };
 
-export default ProjectsTab;
+export default ProjectsSection;

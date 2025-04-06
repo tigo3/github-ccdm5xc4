@@ -1,5 +1,5 @@
 import React from 'react';
-import { isValidTranslationKey, getStaticSectionName } from '../utils'; // Import helpers
+// Removed unused import for utils - functions are passed as props
 
 // Define the type for the keys of the 'en' object in translations
 // We might need to import defaultTranslations here too, or pass the type

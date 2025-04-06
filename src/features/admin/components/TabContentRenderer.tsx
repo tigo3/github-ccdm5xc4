@@ -2,17 +2,19 @@ import React from 'react';
 import { Eye, MessageSquare, FileText, Star } from 'lucide-react';
 
 // Import Tab Components
-import ProjectsTab from '../tabs/ProjectsTab';
-import ServicesTab from '../tabs/ServicesTab';
-import StyleEditorTab from '../tabs/StyleEditorTab';
-import SocialLinksTab from '../tabs/SocialLinksTab';
-import GeneralInfoTab from '../tabs/GeneralInfoTab';
-import PagesTab from '../tabs/PagesTab';
-import ImageUploader from './ImageUploader';
+import ProjectsSection from '../sections/Projects/ProjectsSection';
+import ServicesSection from '../sections/Services/ServicesSection';
+import StyleEditorSection from '../sections/StyleEditor/StyleEditorSection';
+import SocialLinksSection from '../sections/SocialLinks/SocialLinksSection';
+import GeneralInfoSection from '../sections/GeneralInfo/GeneralInfoSection';
+import PagesSection from '../sections/Pages/PagesSection';
+import ImageUploader from '../sections/ImageManagement/components/ImageUploader'; // Corrected path
 
 // Import Utilities and Types (Adjust path as necessary)
-import { renderFields, getStaticSectionName, isValidTranslationKey } from '../utils';
-import { TranslationsType } from '../types'; // Use suggested type name
+// Corrected utility and type imports
+import { renderFields, isValidTranslationKey } from '../sections/GeneralInfo/utils';
+import { getStaticSectionName } from '../utils/helpers';
+import { TranslationsType } from '../../../types/translations'; // Corrected path
 
 // Mock data for dashboard widgets (Should ideally come from props or context)
 const stats = {
@@ -101,14 +103,15 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     return renderDashboardContent();
   }
 
+  // Corrected conditional rendering structure
   if (activeTab === 'styleEditor') {
-    return <StyleEditorTab />;
+    return <StyleEditorSection />;
   }
   if (activeTab === 'socialLinks') {
-    return <SocialLinksTab />;
+    return <SocialLinksSection />;
   }
   if (activeTab === 'pages') {
-    return <PagesTab />;
+    return <PagesSection />;
   }
   if (activeTab === 'media') {
     return <ImageUploader />;
@@ -124,36 +127,36 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           {staticTabTitle}
         </h3>
         {activeTab === 'projects' ? (
-          <ProjectsTab
-            data={translations.en.projects} // Assuming 'en' locale for now
-            path={[activeTab]}
-            handleChange={handleInputChange}
-            editingPath={editingPath}
-            setEditingPath={setEditingPath}
-            handleAddProject={handleAddNewProject}
-            handleDelete={handleDeleteItem}
-            renderFields={renderFields}
+          <ProjectsSection
+          data={translations.en.projects} // Assuming 'en' locale for now
+          path={activeTab ? [activeTab as string] : []}
+          handleChange={handleInputChange}
+          editingPath={editingPath}
+          setEditingPath={setEditingPath}
+          handleAddProject={handleAddNewProject}
+          handleDelete={handleDeleteItem}
+          renderFields={renderFields}
           />
-        ) : activeTab === 'services' ? (
-          <ServicesTab
-            data={translations.en.services} // Assuming 'en' locale
-            path={[activeTab]}
-            handleChange={handleInputChange}
-            editingPath={editingPath}
-            setEditingPath={setEditingPath}
-            handleAddService={handleAddNewService}
-            handleDelete={handleDeleteItem}
-            renderFields={renderFields}
+          ) : activeTab === 'services' ? (
+          <ServicesSection
+          data={translations.en.services} // Assuming 'en' locale
+          path={activeTab ? [activeTab as string] : []}
+          handleChange={handleInputChange}
+          editingPath={editingPath}
+          setEditingPath={setEditingPath}
+          handleAddService={handleAddNewService}
+          handleDelete={handleDeleteItem}
+          renderFields={renderFields}
           />
-        ) : activeTab === 'generalInfo' ? (
-          <GeneralInfoTab
-            translations={translations} // Pass the whole translations object
-            handleInputChange={handleInputChange}
-            editingPath={editingPath}
-            setEditingPath={setEditingPath}
-            getStaticSectionName={getStaticSectionName}
+          ) : activeTab === 'generalInfo' ? (
+          <GeneralInfoSection
+          translations={translations} // Pass the whole translations object
+          handleInputChange={handleInputChange}
+          editingPath={editingPath}
+          setEditingPath={setEditingPath}
+          getStaticSectionName={getStaticSectionName}
           />
-        ) : (
+          ) : (
           // Fallback for other potential translation keys if needed
           // This part might need adjustment based on how other sections are handled
           renderFields(

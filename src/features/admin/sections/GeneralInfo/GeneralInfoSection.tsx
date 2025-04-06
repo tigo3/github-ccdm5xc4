@@ -1,8 +1,8 @@
 import React from 'react';
-import { TranslationsType } from '../types';
+import { TranslationsType } from '../../../../types/translations'; // Corrected path
 
 // Define the props the component will accept
-interface GeneralInfoTabProps {
+interface GeneralInfoSectionProps {
   translations: TranslationsType; // The full translations object
   handleInputChange: (path: (string | number)[], value: string) => void;
   editingPath: string | null;
@@ -71,7 +71,7 @@ const EditableField: React.FC<{
 };
 
 
-const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
+const GeneralInfoSection: React.FC<GeneralInfoSectionProps> = ({
   translations,
   handleInputChange,
   editingPath,
@@ -147,4 +147,4 @@ const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({
   );
 };
 
-export default GeneralInfoTab;
+export default GeneralInfoSection;

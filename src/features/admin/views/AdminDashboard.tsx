@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Firebase
 import { signOut } from "firebase/auth";
-import { auth } from '../../config/firebaseConfig';
+import { auth } from '../../../config/firebaseConfig';
 
 // UI Libraries & Icons
 // UI Libraries & Icons
@@ -14,42 +14,27 @@ import {
 } from 'lucide-react';
 
 // Context
-import { NotificationProvider } from '../../context/NotificationContext';
+import { NotificationProvider } from '../../../context/NotificationContext';
 
 // Common Components
-import ToastNotification from '../../components/common/ToastNotification'; // Keep if used directly, else remove if only via Provider
-import ConfirmationModal from '../../components/common/ConfirmationModal'; // Keep if used directly, else remove if only via Provider
 
 // Feature Hooks
-import { useAdminData } from './hooks/useAdminData';
+import { useAdminData } from '../hooks/useAdminData';
 
 // Feature Components
-import ImageUploader from './components/ImageUploader';
-import TopNavBar from './components/TopNavBar';
-import Sidebar from './components/Sidebar';
-import TabContentRenderer from './components/TabContentRenderer'; // Import the new TabContentRenderer
+import TopNavBar from '../components/TopNavBar'; // Corrected path
+import Sidebar from '../components/Sidebar'; // Corrected path
+import TabContentRenderer from '../components/TabContentRenderer'; // Corrected path
 
 // Feature Tab Components
-import ProjectsTab from './tabs/ProjectsTab';
-import ServicesTab from './tabs/ServicesTab';
-import StyleEditorTab from './tabs/StyleEditorTab';
-import SocialLinksTab from './tabs/SocialLinksTab';
-import GeneralInfoTab from './tabs/GeneralInfoTab';
-import PagesTab from './tabs/PagesTab';
 
 // Feature Utilities & Types
-import { renderFields, getStaticSectionName, isValidTranslationKey } from './utils';
+import { getStaticSectionName } from '../utils/helpers'; // Moved general helper
 // Note: Types import might be needed if './types' exists and is used directly
 
 // --- Constants ---
 
 // Mock data for dashboard widgets (Consider moving to a separate file or fetching if dynamic)
-const stats = {
-  pageViews: '1,234',
-  totalPages: '12',
-  comments: '45',
-  averageRating: '4.8'
-};
 
 // Navigation items (Consider moving to a configuration file if it grows)
 const navItems = [

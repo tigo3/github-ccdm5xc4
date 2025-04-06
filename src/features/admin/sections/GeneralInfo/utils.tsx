@@ -1,7 +1,13 @@
 import React from 'react';
-import { translations as defaultTranslations } from '../../config/translations'; // Import default translations
+// Adjust import path for defaultTranslations
+import { translations as defaultTranslations } from '../../../../config/translations';
+// Adjust import path for Project type if needed within renderFields (assuming it's used for project rendering logic)
+import { Project } from '../Projects/types';
+// Adjust import path for ServiceItem type if needed within renderFields (assuming it's used for service rendering logic)
+import { ServiceItem } from '../Services/types';
 
 // Define the type for the keys of the 'en' object in translations based on the imported default
+// This might be better placed in a shared types file if used elsewhere, but keep here for now if only used by isValidTranslationKey
 type TranslationSectionKey = keyof typeof defaultTranslations.en;
 
 // Helper function to recursively render form fields for nested objects
@@ -32,6 +38,7 @@ export const renderFields = (
               {/* Render the actual project fields */}
               {Object.entries(data).map(([key, value]) => {
                   // Check if the key represents a project (Improved Card Styling)
+                  // Assuming 'value' here conforms to the 'Project' interface structure
                   if (key !== 'title' && typeof value === 'object' && value !== null && !Array.isArray(value)) { // Exclude the main 'projects' title from this block
                       const projectPath = [...path, key];
                       // Use more distinct card styling
@@ -57,7 +64,8 @@ export const renderFields = (
                               </div>
                               {/* Render project fields within the card */}
                               <div className="space-y-4"> {/* Add spacing between fields */}
-                                {renderFields(value, projectPath, handleChange, editingPath, setEditingPath, undefined, undefined)}
+                                {/* Pass undefined for project-specific handlers */}
+                                {renderFields(value, projectPath, handleChange, editingPath, setEditingPath, undefined, handleDelete)}
                               </div>
                           </div>
                       );
@@ -109,7 +117,7 @@ export const renderFields = (
     if (typeof value === 'string') {
       return (
         // Add responsive padding to the container div for slight spacing adjustment on mobile
-        <div key={keyString} className="mb-4 px-1 sm:px-0"> 
+        <div key={keyString} className="mb-4 px-1 sm:px-0">
           <label htmlFor={keyString} className="block text-sm font-medium text-gray-700 capitalize mb-1">
             {/* More descriptive labels */}
             {key.replace(/([A-Z])/g, ' $1')}
@@ -120,7 +128,7 @@ export const renderFields = (
               name={keyString}
               rows={value.length > 100 ? 4 : 2} // Keep dynamic rows
               // Removed mt-1, label already has mb-1. Ensure consistent padding. Added flex-1.
-              className="block w-full flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white" 
+              className="block w-full flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-white"
               value={value}
               onChange={(e) => handleChange(currentPath, e.target.value)}
               onBlur={() => setEditingPath(null)} // Hide input on blur
@@ -130,7 +138,7 @@ export const renderFields = (
             // Improved display for non-editing state
             <div
               // Removed mt-1, label already has mb-1. Ensure consistent padding. Added flex-1.
-              className="block w-full flex-1 rounded-md border border-gray-200 bg-gray-50 p-2 cursor-pointer hover:bg-gray-100 min-h-[50px] whitespace-pre-wrap text-gray-800" 
+              className="block w-full flex-1 rounded-md border border-gray-200 bg-gray-50 p-2 cursor-pointer hover:bg-gray-100 min-h-[50px] whitespace-pre-wrap text-gray-800"
               onClick={() => setEditingPath(keyString)} // Enable editing on click
             >
               {value || <span className="text-gray-400 italic">Click to edit...</span>}
@@ -146,11 +154,12 @@ export const renderFields = (
         <div key={keyString} className="mb-6 p-4 border border-gray-200 rounded">
           <h4 className="text-lg font-semibold mb-3 capitalize">{String(key).replace(/([A-Z])/g, ' $1')}</h4>
           {/* Pass editing state down */}
-          {renderFields(value, currentPath, handleChange, editingPath, setEditingPath)}
+          {renderFields(value, currentPath, handleChange, editingPath, setEditingPath, undefined, handleDelete)}
         </div>
       );
     } else if (Array.isArray(value)) {
        // Handle arrays (e.g., project tags, or items in other sections like 'services')
+       // Assuming 'item' here conforms to 'ServiceItem' if path[0] is 'services'
        return (
          // Keep styling consistent for array sections
          <div key={keyString} className="mb-6 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
@@ -234,44 +243,6 @@ export const renderFields = (
     }
     return null;
   });
-};
-
-// Helper function to update nested state immutably
-export const updateNestedState = (prevState: any, path: (string | number)[], value: string): any => {
-  if (!path || path.length === 0) {
-    return prevState;
-  }
-  const newState = JSON.parse(JSON.stringify(prevState));
-  let current: any = newState;
-  for (let i = 0; i < path.length - 1; i++) {
-    const key = path[i];
-    if (current[key] === undefined || current[key] === null) {
-       const nextKeyIsNumber = typeof path[i+1] === 'number';
-       current[key] = nextKeyIsNumber ? [] : {};
-    }
-     if (Array.isArray(current) && typeof key === 'number') {
-        while (current.length <= key) {
-            current.push(null);
-        }
-     }
-    current = current[key];
-  }
-
-  const lastKey = path[path.length - 1];
-   if (typeof current !== 'object' || current === null) {
-       console.error("Cannot set property on non-object:", current, "at path", path);
-       return prevState;
-   }
-  current[lastKey] = value;
-  return newState;
-};
-
-// Helper function to get a static display name for a section key
-export const getStaticSectionName = (key: string): string => {
-  // Simple formatting: split camelCase and capitalize
-  return key
-    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-    .replace(/^./, (str) => str.toUpperCase()); // Capitalize the first letter
 };
 
 // Type guard to check if a key is a valid TranslationSectionKey

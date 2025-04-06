@@ -1,0 +1,196 @@
+import { useState, useRef, ChangeEvent, DragEvent } from 'react';
+import supabase from '../../../../../config/supabaseConfig'; // Corrected path
+import { useNotifications } from '../../../../../context/NotificationContext'; // Corrected path
+import { UploadStatus } from '../types/imageUploaderTypes';
+
+const BUCKET_NAME = 'img'; // Define bucket name
+
+interface UseImageUploadProps {
+  onUploadSuccess?: (url: string) => void;
+  onUploadComplete?: () => void; // Callback to signal upload process finished (success or error)
+}
+
+export const useImageUpload = ({ onUploadSuccess, onUploadComplete }: UseImageUploadProps) => {
+  const [status, setStatus] = useState<UploadStatus>('idle');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [copyButtonText, setCopyButtonText] = useState('Copy Link');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useNotifications();
+
+  const resetState = () => {
+    setStatus('idle');
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setUploadedUrl(null);
+    setError(null);
+    setIsDragging(false);
+    setCopyButtonText('Copy Link');
+    // Reset file input visually if possible (though value reset happens in handleInputChange)
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileSelect = (file: File | null) => {
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file);
+      setError(null);
+      setStatus('idle'); // Reset status
+      setUploadedUrl(null); // Clear previous URL
+      const newPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(newPreviewUrl);
+      // Automatically start upload
+      handleUpload(file);
+      // Clean up previous preview URL if it exists
+      // Note: This might revoke the URL before the success screen uses it if upload is instant.
+      // Consider revoking it when the component unmounts or a new file is selected.
+      // For simplicity here, we'll rely on the browser's garbage collection or revoke later.
+    } else {
+      setSelectedFile(null);
+      setPreviewUrl(null); // Also clear preview
+      if (file) {
+        setError('Please select an image file.');
+        showToast('Please select an image file.', 'error');
+      }
+    }
+  };
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    handleFileSelect(event.target.files?.[0] ?? null);
+    // Reset file input value to allow selecting the same file again
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+    handleFileSelect(event.dataTransfer.files?.[0] ?? null);
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // Check if the relatedTarget (where the mouse is going) is outside the drop zone
+    if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleUpload = async (fileToUpload: File) => {
+    if (!supabase) {
+      setError('Supabase client is not initialized.');
+      setStatus('error');
+      showToast('Supabase client not initialized.', 'error');
+      onUploadComplete?.();
+      return;
+    }
+    if (!fileToUpload) {
+      setError('No file selected for upload.');
+      setStatus('error');
+      // No need for toast here, handleFileSelect handles invalid selections
+      onUploadComplete?.();
+      return;
+    }
+
+    setStatus('uploading');
+    setError(null);
+    setCopyButtonText('Copy Link'); // Reset copy button text
+
+    const timestamp = Date.now();
+    const filePath = `public/${timestamp}_${fileToUpload.name}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(filePath, fileToUpload, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(filePath);
+
+      if (!urlData || !urlData.publicUrl) {
+        throw new Error('Failed to retrieve public URL after upload.');
+      }
+
+      const publicUrl = urlData.publicUrl;
+      setUploadedUrl(publicUrl);
+      setStatus('success');
+      showToast('Image uploaded successfully!', 'success');
+      onUploadSuccess?.(publicUrl);
+
+    } catch (err) {
+      console.error("Upload process failed:", err);
+      const errorMessage = `Upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`;
+      setError(errorMessage);
+      setStatus('error');
+      showToast(errorMessage, 'error');
+    } finally {
+        onUploadComplete?.(); // Signal completion regardless of success/error
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!uploadedUrl) return;
+    try {
+      await navigator.clipboard.writeText(uploadedUrl);
+      setCopyButtonText('Copied!');
+      setTimeout(() => setCopyButtonText('Copy Link'), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      const copyError = 'Failed to copy link to clipboard.';
+      setError(copyError);
+      showToast(copyError, 'error');
+    }
+  };
+
+  // Clean up preview URL when the hook unmounts or selectedFile changes
+  // useEffect(() => {
+  //   let currentPreviewUrl = previewUrl; // Capture the URL
+  //   return () => {
+  //     if (currentPreviewUrl) {
+  //       URL.revokeObjectURL(currentPreviewUrl);
+  //     }
+  //   };
+  // }, [previewUrl]); // Dependency on previewUrl itself
+
+  return {
+    status,
+    selectedFile,
+    previewUrl,
+    uploadedUrl,
+    error,
+    isDragging,
+    copyButtonText,
+    fileInputRef,
+    handleInputChange,
+    handleDrop,
+    handleDragOver,
+    handleDragLeave,
+    triggerFileInput,
+    handleCopyLink,
+    resetState, // Expose reset function
+  };
+};

@@ -5,9 +5,9 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot, collection, getDocs, query, orderBy } from 'firebase/firestore'; // Removed unused: getDoc
 import { auth, db } from './config/firebaseConfig';
 // Removed defaultTranslations import, now handled by the hook
-import { Page } from './features/admin/types'; // Import the Page type
-import LoginPage from './features/admin/LoginPage';
-import AdminDashboard from './features/admin/AdminDashboard';
+import { Page } from './features/admin/sections/Pages/types'; // Import the Page type
+import LoginPage from './features/admin/views/LoginPage';
+import AdminDashboard from './features/admin/views/AdminDashboard';
 // Removed getProjectsData import (used in MainSite)
 // Removed Logo import (used in MainSite)
 import DynamicPage from './pages/DynamicPage'; // Import from new location

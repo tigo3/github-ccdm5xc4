@@ -1,11 +1,6 @@
 import React from 'react';
 
-// Define the structure of a single service item
-interface ServiceItem {
-  title: string;
-  description: string;
-  // Add other fields if necessary, e.g., icon: string;
-}
+import { ServiceItem } from './types'; // Import the shared type
 
 // Define the structure for the data prop passed to ServicesTab
 // Matches the 'services' structure in EnglishTranslations (types.ts)
@@ -16,7 +11,7 @@ interface ServicesData {
 }
 
 // Define the props type for the ServicesTab component
-interface ServicesTabProps {
+interface ServicesSectionProps {
   data: ServicesData; // Expect the whole services object structure
   path: (string | number)[]; // The base path, e.g., ['services']
   handleChange: (path: (string | number)[], value: string) => void;
@@ -35,7 +30,7 @@ interface ServicesTabProps {
   ) => React.ReactNode;
 }
 
-const ServicesTab: React.FC<ServicesTabProps> = ({
+const ServicesSection: React.FC<ServicesSectionProps> = ({
   data,
   path,
   handleChange,
@@ -84,4 +79,4 @@ const ServicesTab: React.FC<ServicesTabProps> = ({
   );
 };
 
-export default ServicesTab;
+export default ServicesSection;

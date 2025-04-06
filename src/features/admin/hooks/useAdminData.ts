@@ -3,8 +3,11 @@ import { doc, setDoc, onSnapshot, updateDoc, deleteField } from "firebase/firest
 import { db } from '../../../config/firebaseConfig'; // Adjust path as needed
 import { translations as defaultTranslations } from '../../../config/translations'; // Adjust path as needed
 import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
-import { TranslationsType, LanguageKey, newProjectTemplate, ServiceItem } from '../types'; // Adjust path as needed
-import { updateNestedState } from '../utils'; // Adjust path as needed
+// Updated imports for moved types and constants
+import { TranslationsType, LanguageKey } from '../../../types/translations'; // Moved global types
+import { newProjectTemplate } from '../sections/Projects/constants'; // Moved project constant
+import { ServiceItem } from '../sections/Services/types'; // Moved service type
+import { updateNestedState } from '../utils/helpers'; // Moved helper function
 
 // Define Firestore document path
 const TRANSLATIONS_DOC_PATH = 'translations/en';

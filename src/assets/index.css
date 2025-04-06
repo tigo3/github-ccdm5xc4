@@ -1,70 +1,18 @@
+/* ==========================================================================
+   Imports
+   ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap');
 
+/* ==========================================================================
+   Tailwind Directives
+   ========================================================================== */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-.quill-editor-wrapper {
-  position: relative; /* Keep relative positioning */
-  /* overflow: clip; REMOVED */
-}
-
-/* Quill Toolbar Styles (No longer sticky) */
-.quill-editor-wrapper .ql-toolbar.ql-snow { /* Scope to the wrapper */
-  background-color: white;
-  border: 1px solid #ccc; /* Add full border */
-  border-top-left-radius: 0.375rem; /* Match potential wrapper rounding */
-  border-top-right-radius: 0.375rem; /* Match potential wrapper rounding */
-  /* position: sticky; REMOVED */
-  /* top: 0; REMOVED */
-  /* z-index: 100; REMOVED */
-  /* border-bottom: 1px solid #ccc; REMOVED - now part of full border */
-}
-
-/* Style the editor container for scrolling */
-.quill-editor-wrapper .ql-container.ql-snow { /* Scope to the wrapper */
-  overflow-y: auto; /* Enable vertical scrollbar when content exceeds height */
-  border-bottom-left-radius: 0.375rem; /* Match potential wrapper rounding */
-  border-bottom-right-radius: 0.375rem; /* Match potential wrapper rounding */
-  /* max-height: 400px; REMOVED - Height will be controlled dynamically */
-  border: 1px solid #ccc; /* Add border consistent with toolbar */
-  border-top: none; /* Remove top border as toolbar has bottom border */
-}
-
-/* Ensure Quill's own popups (like link editor) also have high z-index */
-.ql-tooltip {
-  z-index: 101 !important; /* Make sure tooltips appear above the sticky toolbar */
-}
-
-/* Ensure Quill pickers (dropdowns) work well with sticky toolbar */
-.quill-editor-wrapper .ql-picker-options {
-  position: absolute; /* Keep absolute positioning relative to toolbar */
-  z-index: 102; /* Ensure options appear above toolbar and tooltips */
-  background-color: white; /* Ensure background for visibility */
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  /* Add margin-top to prevent potential overlap/jump if needed */
-  /* margin-top: 2px; */
-}
-
-/* Remove relative positioning from pickers */
-/* .quill-editor-wrapper .ql-toolbar.ql-snow .ql-picker { */
-  /* position: relative; REMOVED */
-  /* z-index: 101; REMOVED */
-/* } */
-
-/* Quill Toolbar Mobile Responsiveness (Scoped) */
-.quill-editor-wrapper .ql-toolbar { /* Scope to wrapper */
-  flex-wrap: wrap; /* Allow toolbar items to wrap onto the next line */
-  padding: 4px 8px; /* Add some padding for better spacing */
-}
-
-.quill-editor-wrapper .ql-snow .ql-formats { /* Scope to wrapper */
-  margin-right: 8px !important; /* Adjust spacing between format groups */
-  margin-bottom: 4px; /* Add bottom margin when wrapped */
-}
-
-
+/* ==========================================================================
+   CSS Variables (Theme Configuration)
+   ========================================================================== */
 :root {
   --primary-color: #377dc8; /* Default primary color */
   --secondary-color: #0f3257; /* Default secondary color */
@@ -75,13 +23,15 @@
   --section-bg-color: #374151; /* Gray-700 */
 }
 
+/* ==========================================================================
+   Tailwind Base Layer Customizations
+   ========================================================================== */
 @layer base {
   body {
     @apply antialiased;
     font-family: var(--font-family); /* Use the CSS variable */
   }
 
-  
   .sectionbg {
     background-color: var(--section-bg-color);
   }
@@ -93,51 +43,91 @@
 
   .ltr {
     direction: ltr;
-    /* font-family is now inherited from body */
+    /* font-family is inherited from body */
   }
 }
 
-
+/* ==========================================================================
+   Tailwind Components Layer Customizations
+   ========================================================================== */
 @layer components {
   .container {
     @apply max-w-7xl mx-auto;
   }
 }
 
-/* Target images within the Quill editor */
-.ql-editor img {
-  /* Add shadow effect */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  
-  /* Smooth corners */
-  border-radius: 4px;
-  
-  /* Add some spacing around images */
-  margin: 10px 0; /* Default vertical margin */
-  
-  /* Ensure images don't exceed container width */
-  max-width: 100%;
-  
-  /* Make image a block element for alignment */
-  display: block; 
+/* ==========================================================================
+   Custom Component Styles: Quill Editor
+   ========================================================================== */
 
-  /* Smooth transition on hover */
-  transition: all 0.3s ease;
+/* Wrapper */
+.quill-editor-wrapper {
+  position: relative;
 }
 
-/* Specific styles for centered images */
+/* Toolbar */
+.quill-editor-wrapper .ql-toolbar.ql-snow {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+  /* Removed sticky positioning */
+  /* Responsive wrapping */
+  flex-wrap: wrap;
+  padding: 4px 8px; /* Add some padding for better spacing */
+}
+
+/* Editor Container */
+.quill-editor-wrapper .ql-container.ql-snow {
+  overflow-y: auto; /* Enable vertical scrollbar */
+  border: 1px solid #ccc;
+  border-top: none; /* Remove top border as toolbar has bottom border */
+  border-bottom-left-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+  /* Height should be controlled by parent or specific instance */
+}
+
+/* Tooltips (e.g., link editor) */
+.ql-tooltip {
+  z-index: 101 !important; /* Ensure tooltips appear above other elements */
+}
+
+/* Pickers (Dropdowns) */
+.quill-editor-wrapper .ql-picker-options {
+  position: absolute; /* Keep absolute positioning relative to toolbar */
+  z-index: 102; /* Ensure options appear above toolbar and tooltips */
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Toolbar Format Groups (Responsiveness) */
+.quill-editor-wrapper .ql-snow .ql-formats {
+  margin-right: 8px !important; /* Adjust spacing between format groups */
+  margin-bottom: 4px; /* Add bottom margin when wrapped */
+}
+
+/* Quill Editor Image Styles */
+.ql-editor img {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
+  border-radius: 4px; /* Smooth corners */
+  margin: 10px 0; /* Default vertical margin */
+  max-width: 100%; /* Ensure images don't exceed container width */
+  display: block; /* Make image a block element for alignment */
+  transition: all 0.3s ease; /* Smooth transition on hover */
+}
+
 .ql-editor .ql-align-center img {
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Optional: Add a hover effect for better interaction */
 .ql-editor img:hover {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
   transform: translateY(-2px);
 }
 
-/* Optional: Add a caption style if you use them */
+/* Optional: Caption style */
 .ql-editor .image-caption {
   text-align: center;
   font-style: italic;
@@ -146,7 +136,9 @@
   margin-top: 5px;
 }
 
-/* Toast Animation */
+/* ==========================================================================
+   Custom Component Styles: Toast Notification
+   ========================================================================== */
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translateY(10px); }
   10% { opacity: 1; transform: translateY(0); }
