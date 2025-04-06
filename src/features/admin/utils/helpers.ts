@@ -1,5 +1,5 @@
 // Helper function to update nested state immutably
-export const updateNestedState = (prevState: any, path: (string | number)[], value: string): any => {
+export const updateNestedState = (prevState: any, path: (string | number)[], value: string | string[]): any => { // Allow string[]
   if (!path || path.length === 0) {
     return prevState;
   }

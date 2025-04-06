@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { doc, setDoc, onSnapshot, updateDoc, deleteField } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from '../../../config/firebaseConfig'; // Adjust path as needed
 import { translations as defaultTranslations } from '../../../config/translations'; // Adjust path as needed
 import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
@@ -67,7 +67,7 @@ export const useAdminData = () => {
   }, []); // Empty dependency array ensures this runs only on mount and unmount
 
   // Note: updateNestedState uses 'any', so type safety relies on correct path construction
-  const handleInputChange = useCallback((fullPath: (string | number)[], value: string) => {
+  const handleInputChange = useCallback((fullPath: (string | number)[], value: string | string[]) => { // Allow string[] for tags
     setTranslations((prev: TranslationsType) => {
       const langToUpdate: LanguageKey = 'en';
       // Basic validation before calling the 'any' based utility
@@ -159,93 +159,131 @@ export const useAdminData = () => {
   };
 
   // New function to handle specific field deletion using updateDoc and FieldValue.delete()
-  const handleFirestoreDelete = async (fieldPath: string) => {
-    if (!db) {
-      setSaveStatus("Error: Firestore connection failed.");
-      return;
-    }
-    setSaveStatus('Deleting item...');
-    const translationsDocRef = doc(db, TRANSLATIONS_DOC_PATH);
-    try {
-      // Use the imported deleteField sentinel
-      await updateDoc(translationsDocRef, {
-        [fieldPath]: deleteField() // Use the deleteField() sentinel function
-      });
-      // Don't set status here, let onSnapshot update trigger potential status changes or rely on UI update
-      showToast('Item deleted successfully!', 'success'); // Show success toast
-      setSaveStatus(''); // Clear status
-    } catch (error) {
-      console.error("Failed to delete item from Firestore:", error);
-      // setSaveStatus('Error deleting item.'); // Replaced by toast
-      showToast('Error deleting item.', 'error');
-      setSaveStatus(''); // Clear status
-    }
-  };
 
   // Updated handleDeleteItem to handle array deletions (services) and field deletions (projects)
-  const handleDeleteItem = useCallback(async (pathToDelete: (string | number)[]) => { // Make async
+  const handleDeleteItem = useCallback(async (pathToDelete: (string | number)[]) => {
     if (!pathToDelete || pathToDelete.length < 1) {
-        console.error("Invalid path for deletion:", pathToDelete);
-        setSaveStatus('Error: Invalid deletion path.');
-        return;
+      console.error("Invalid path for deletion:", pathToDelete);
+      showToast('Error: Invalid deletion path.', 'error');
+      return;
     }
 
-    // Check if we are deleting a service item from the list array
+    // --- Service Item Deletion (Array Element) ---
     if (pathToDelete[0] === 'services' && pathToDelete[1] === 'list' && typeof pathToDelete[2] === 'number') {
-        const serviceIndexToDelete = pathToDelete[2];
+      const serviceIndexToDelete = pathToDelete[2];
+      const currentServicesList = translations.en.services?.list;
 
-        // Get the current list from state (more reliable than reading Firestore again immediately)
-        // Use optional chaining in case services or list is missing initially
-        const currentServicesList = translations.en.services?.list;
+      if (!Array.isArray(currentServicesList)) {
+        console.error("Cannot delete service item: services.list is not an array or is missing.", currentServicesList);
+        showToast('Error: Services data structure issue.', 'error');
+        return;
+      }
 
-        if (!Array.isArray(currentServicesList)) {
-            console.error("Cannot delete service item: services.list is not an array or is missing.", currentServicesList);
-            setSaveStatus('Error: Services data structure issue.');
-            return;
-        }
+      // 1. Optimistic UI Update (Local State)
+      const updatedServicesList = currentServicesList.filter((_, index) => index !== serviceIndexToDelete);
+      setTranslations(prev => ({
+        ...prev,
+        en: {
+          ...prev.en,
+          services: {
+            ...(prev.en.services || { title: '', list: [] }), // Ensure services object exists
+            list: updatedServicesList,
+          },
+        },
+      }));
 
-        // Create the new list without the item to delete
-        const updatedServicesList = currentServicesList.filter((_, index) => index !== serviceIndexToDelete);
+      // 2. Firestore Update
+      if (!db) {
+        showToast("Error: Firestore connection failed.", 'error');
+        // Optionally revert state change here if needed
+        return;
+      }
+      const translationsDocRef = doc(db, TRANSLATIONS_DOC_PATH);
+      try {
+        setSaveStatus('Deleting service item...'); // Indicate activity
+        await updateDoc(translationsDocRef, {
+          'services.list': updatedServicesList // Update the whole array
+        });
+        showToast('Service item deleted.', 'success');
+      } catch (error) {
+        console.error("Failed to update services list in Firestore:", error);
+        showToast('Error deleting service item.', 'error');
+        // Optionally revert state change here by refetching or using the previous state
+      } finally {
+        setSaveStatus(''); // Clear activity indicator
+      }
 
-        // Update Firestore with the modified list
-        if (!db) {
-            setSaveStatus("Error: Firestore connection failed.");
-            return;
-        }
-        setSaveStatus('Deleting service item...');
-        const translationsDocRef = doc(db, TRANSLATIONS_DOC_PATH);
-        try {
-            // Update the specific field 'services.list' with the new array
-            await updateDoc(translationsDocRef, {
-                'services.list': updatedServicesList
-            });
-            // onSnapshot listener will automatically update the local state and UI
-            showToast('Service item deleted.', 'success'); // Show success toast
-            setSaveStatus(''); // Clear status
-        } catch (error) {
-            console.error("Failed to update services list in Firestore:", error);
-            // setSaveStatus('Error deleting service item.'); // Replaced by toast
-            showToast('Error deleting service item.', 'error');
-            setSaveStatus(''); // Clear status
-        }
+    // --- Project Item Deletion (Object Property) ---
+    } else if (pathToDelete[0] === 'projects' && pathToDelete.length === 2) {
+        const projectKeyToDelete = pathToDelete[1];
+        const fieldPathString = pathToDelete.join('.'); // e.g., "projects.project_123"
 
-    } else {
-        // Handle deletion for other types (e.g., projects) using deleteField
-        const fieldPathString = pathToDelete.join('.');
-        if (!fieldPathString) {
-           console.error("Generated empty field path for deletion:", pathToDelete);
-           setSaveStatus('Error: Could not determine field to delete.');
+        if (typeof projectKeyToDelete !== 'string' || !fieldPathString) {
+           console.error("Invalid project path for deletion:", pathToDelete);
+           showToast('Error: Could not determine project to delete.', 'error');
            return;
         }
-        // Call the specific delete function for Firestore fields
-        // Note: handleFirestoreDelete is already async
-        await handleFirestoreDelete(fieldPathString);
-        // Rely on onSnapshot for UI updates
+
+        // 1. Optimistic UI Update (Local State)
+        setTranslations(prev => {
+            const updatedProjects = { ...prev.en.projects };
+            delete updatedProjects[projectKeyToDelete]; // Remove the property
+            return {
+                ...prev,
+                en: {
+                    ...prev.en,
+                    projects: updatedProjects,
+                },
+            };
+        });
+
+        // 2. Firestore Update (Revised - Avoid deleteField, update whole object)
+        if (!db) {
+            showToast("Error: Firestore connection failed.", 'error');
+            // Attempt to revert optimistic update might be complex, rely on error message for now
+            return;
+        }
+        const translationsDocRef = doc(db, TRANSLATIONS_DOC_PATH);
+        try {
+            setSaveStatus('Deleting project item...'); // Indicate activity
+
+            // Get the projects object from the *current* state (before optimistic update)
+            // Note: This relies on `translations` being available in the useCallback's closure
+            const projectsBeforeDelete = translations.en.projects;
+            const updatedProjectsForFirestore = { ...projectsBeforeDelete };
+            // Ensure the key exists before deleting (optional safety check)
+            if (updatedProjectsForFirestore.hasOwnProperty(projectKeyToDelete)) {
+                delete updatedProjectsForFirestore[projectKeyToDelete]; // Remove the key
+            } else {
+                 console.warn(`Attempted to delete non-existent project key: ${projectKeyToDelete}`);
+                 // Proceeding anyway, Firestore update might resolve inconsistency if key was already gone
+            }
+
+
+            // Update the entire 'projects' field in Firestore
+            await updateDoc(translationsDocRef, {
+                'projects': updatedProjectsForFirestore
+            });
+            // The onSnapshot listener should now receive the correct state.
+            showToast('Project item deleted.', 'success');
+        } catch (error) {
+            console.error("Failed to delete project item from Firestore:", error);
+            showToast('Error deleting project item.', 'error');
+            // If Firestore fails, the optimistic update is still in the local state.
+            // The next snapshot *might* correct it, or a page refresh would.
+            // A full revert here is complex and might fight with the snapshot listener.
+            console.error("Firestore delete failed, local state might be inconsistent until next snapshot/refresh.");
+        } finally {
+            setSaveStatus(''); // Clear activity indicator
+        }
+    } else {
+        // Handle other potential deletion paths or show error
+        console.error("Unhandled deletion path:", pathToDelete);
+        showToast('Error: Deletion logic not implemented for this path.', 'error');
     }
 
-  // Add dependency on the services list from state to ensure useCallback has the latest list
-  // when creating the filtered array. Also include db reference.
-  }, [translations.en.services?.list]); // Removed db dependency as it's stable
+  // Add translations to dependency array for optimistic updates
+  }, [translations, showToast]); // Include showToast from useNotifications context
 
 
   const resetToDefaults = async () => {

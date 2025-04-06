@@ -9,7 +9,7 @@ import { auth } from '../../../config/firebaseConfig';
 // UI Libraries & Icons
 // UI Libraries & Icons
 import {
-  LayoutDashboard, FileEdit, Palette, Link2, Settings, FileText, // Added FileText back
+  LayoutDashboard, FileEdit, Palette, Link2, Settings, FileText, Briefcase, // Added Briefcase
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -41,6 +41,7 @@ const navItems = [
   { icon: <LayoutDashboard size={20} />, label: 'Dashboard', tab: 'dashboard' },
   { icon: <FileText size={20} />, label: 'Pages', tab: 'pages' },
   { icon: <FileEdit size={20} />, label: 'Projects', tab: 'projects' },
+  { icon: <Briefcase size={20} />, label: 'Services', tab: 'services' }, // Added Services section
   { icon: <ImageIcon size={20} />, label: 'Media', tab: 'media' }, // Use the alias ImageIcon
   { icon: <Palette size={20} />, label: 'Appearance', tab: 'styleEditor' },
   { icon: <Link2 size={20} />, label: 'Social Links', tab: 'socialLinks' },

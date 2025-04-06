@@ -30,7 +30,7 @@ interface TabContentRendererProps {
   translations: TranslationsType; // Use the correct imported type
   editingPath: string | null;
   setEditingPath: (path: string | null) => void;
-  handleInputChange: (path: (string | number)[], value: string) => void; // Match expected signature
+  handleInputChange: (path: (string | number)[], value: string | string[]) => void; // Allow string[] for tags
   handleAddNewProject: () => void;
   handleAddNewService: () => void;
   handleDeleteItem: (path: (string | number)[], index?: number) => void; // Match expected path signature
@@ -130,23 +130,20 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           <ProjectsSection
           data={translations.en.projects} // Assuming 'en' locale for now
           path={activeTab ? [activeTab as string] : []}
-          handleChange={handleInputChange}
-          editingPath={editingPath}
-          setEditingPath={setEditingPath}
+          handleChange={handleInputChange} // Type updated to allow string[]
+          // editingPath, setEditingPath, renderFields removed
           handleAddProject={handleAddNewProject}
           handleDelete={handleDeleteItem}
-          renderFields={renderFields}
           />
           ) : activeTab === 'services' ? (
           <ServicesSection
           data={translations.en.services} // Assuming 'en' locale
           path={activeTab ? [activeTab as string] : []}
           handleChange={handleInputChange}
-          editingPath={editingPath}
-          setEditingPath={setEditingPath}
+          // editingPath and setEditingPath removed as they are no longer props of ServicesSection
           handleAddService={handleAddNewService}
           handleDelete={handleDeleteItem}
-          renderFields={renderFields}
+          // renderFields prop removed as ServicesSection now handles its own rendering
           />
           ) : activeTab === 'generalInfo' ? (
           <GeneralInfoSection
