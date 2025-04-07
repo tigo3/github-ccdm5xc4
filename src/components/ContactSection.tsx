@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react'; // Added useState, useCallback
-import emailjs from 'emailjs-com'; // Added emailjs import
+import React, { useState, useCallback } from 'react';
+import emailjs from 'emailjs-com';
+import { useNotifications } from '../context/NotificationContext';
 
-// --- Moved from App.tsx ---
+// Rate limiting constants
 const RATE_LIMIT_DURATION = 60000;
 let lastSubmissionTime = 0;
 
@@ -13,8 +14,6 @@ const validateEmail = (email: string): boolean => {
 const validateMessage = (message: string): boolean => {
   return message.length >= 10 && message.length <= 1000;
 };
-// --- End Moved from App.tsx ---
-
 
 interface ContactSectionProps {
   t: {
@@ -27,11 +26,11 @@ interface ContactSectionProps {
     messagePlaceholder: string;
     submitButton: string;
   };
-  // Removed handleSubmit, formData, handleInputChange props
 }
 
-const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed props from destructuring
-  // --- Moved from App.tsx ---
+const ContactSection: React.FC<ContactSectionProps> = ({ t }) => {
+  const { showToast, requestConfirmation } = useNotifications();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,62 +47,65 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed pr
 
     const now = Date.now();
     if (now - lastSubmissionTime < RATE_LIMIT_DURATION) {
-      alert('Please wait a minute before sending another message.');
+      showToast('Please wait a minute before sending another message.', 'error');
       return;
     }
 
     if (!validateEmail(formData.email)) {
-      alert('Please enter a valid email address.');
+      showToast('Please enter a valid email address.', 'error');
       return;
     }
 
     if (!validateMessage(formData.message)) {
-      alert('Message must be between 10 and 1000 characters.');
+      showToast('Message must be between 10 and 1000 characters.', 'error');
       return;
     }
 
-    lastSubmissionTime = now;
+    // Ask for confirmation before sending
+    requestConfirmation({
+      title: 'Send Message',
+      message: 'Are you sure you want to send this message?',
+      confirmText: 'Send',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          lastSubmissionTime = now;
+          
+          // Initialize EmailJS
+          emailjs.init("skwn_-DYfDakGK644");
 
-    try {
-      // Consider moving User ID to environment variables or config
-      emailjs.init("skwn_-DYfDakGK644");
+          await emailjs.send(
+            "service_bdj14o3",
+            "template_2e2nikq",
+            {
+              name: formData.name,
+              email: formData.email,
+              message: formData.message,
+              to_email: 'tiger3homs@gmail.com',
+            }
+          );
 
-      await emailjs.send(
-        // Consider moving Service ID and Template ID to environment variables or config
-        "service_bdj14o3",
-        "template_2e2nikq",
-        {
-          name: formData.name,
-          email: formData.email,
-          message: formData.message,
-          to_email: 'tiger3homs@gmail.com', // Consider moving recipient email to config
+          showToast('Message sent successfully!', 'success');
+          setFormData({ name: '', email: '', message: '' }); // Reset form
+        } catch (error) {
+          console.error('Failed to send message:', error);
+          showToast('Failed to send message. Please try again.', 'error');
         }
-      );
+      }
+    });
+  }, [formData, showToast, requestConfirmation]);
 
-      alert('Message sent successfully!');
-      setFormData({ name: '', email: '', message: '' }); // Reset form
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      alert('Failed to send message. Please try again.');
-    }
-  }, [formData]); // Dependency array includes formData
-  // --- End Moved from App.tsx ---
   return (
-    // Added shadow-xl, rounded-lg, and background color using the unified CSS variable
     <section
-      className="container mx-auto px-4 py-16 rounded-lg shadow-xl backdrop-blur-sm" // Removed bg-gray-800/50
-      // Removed inline style/variable reference for background
+      className="container mx-auto px-4 py-16 rounded-lg shadow-xl backdrop-blur-sm"
     >
-      {/* Added background, padding, rounding, and shadow to the form container div */}
-      <div className="bg-section max-w-3xl mx-auto p-8 rounded-lg shadow-lg " > {/* Replaced sectionbg with bg-section */}
+      <div className="bg-section max-w-3xl mx-auto p-8 rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-center mb-8 text-title">
-          {/* Removed inline style: color: 'var(--title-color)' */}
           {t.title}
         </h2>
-        {/* Use the local handleSubmit */}
-        <form onSubmit={handleSubmit} className="mt-8" >
+        <form onSubmit={handleSubmit} className="mt-8">
           <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-h3title"> {/* Removed text-gray-300 and inline style */}
+            <label htmlFor="name" className="block text-sm font-medium text-h3title">
               {t.nameLabel}
             </label>
             <input
@@ -111,14 +113,14 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed pr
               id="name"
               name="name"
               value={formData.name}
-              onChange={handleInputChange} // Use local handleInputChange
+              onChange={handleInputChange}
               placeholder={t.namePlaceholder}
-              className="mt-1 block w-full rounded-md bg-background-secondary/50 text-text border-secondary focus:ring-primary focus:border-primary" // Replaced hardcoded colors with theme colors
+              className="mt-1 block w-full bg-gradient-to-br from-background to-background-secondary text-text border-secondary focus:ring-primary focus:border-primary p-1"
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-h3title"> {/* Removed text-gray-300 and inline style */}
+            <label htmlFor="email" className="block text-sm font-medium text-h3title">
               {t.emailLabel}
             </label>
             <input
@@ -126,30 +128,30 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed pr
               id="email"
               name="email"
               value={formData.email}
-              onChange={handleInputChange} // Use local handleInputChange
+              onChange={handleInputChange}
               placeholder={t.emailPlaceholder}
-              className="mt-1 block w-full rounded-md bg-background-secondary/50 text-text border-secondary focus:ring-primary focus:border-primary" // Replaced hardcoded colors with theme colors
+              className="mt-1 block w-full bg-gradient-to-br from-background to-background-secondary text-text border-secondary focus:ring-primary focus:border-primary p-1"
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="message" className="block text-sm font-medium text-h3title"> {/* Removed text-gray-300 and inline style */}
+            <label htmlFor="message" className="block text-sm font-medium text-h3title">
               {t.messageLabel}
             </label>
             <textarea
               id="message"
               name="message"
               value={formData.message}
-              onChange={handleInputChange} // Use local handleInputChange
+              onChange={handleInputChange}
               placeholder={t.messagePlaceholder}
-              className="mt-1 block w-full rounded-md bg-background-secondary/50 text-text border-secondary focus:ring-primary focus:border-primary" // Replaced hardcoded colors with theme colors
+              className="mt-1 block w-full bg-gradient-to-br from-background to-background-secondary text-text border-secondary focus:ring-primary focus:border-primary p-3"
               rows={4}
               required
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition" // Replaced hardcoded colors with theme colors
+            className="px-4 py-2 bg-primary hover:bg-gradient-to-br from-background to-background-secondary transition"
           >
             {t.submitButton}
           </button>
