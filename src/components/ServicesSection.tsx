@@ -13,7 +13,7 @@ interface ServicesSectionProps {
 const ServicesSection: React.FC<ServicesSectionProps> = ({ title, services }) => {
   return (
     // Added shadow-xl, rounded-lg, and background color using the unified CSS variable
-    <section
+    <section id='services'
       className="container mx-auto px-4 py-16  backdrop-blur-sm" // Removed bg-gray-800/50
       // Removed inline style/variable reference for background
     >

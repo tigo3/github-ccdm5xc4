@@ -16,7 +16,7 @@ interface ProjectsSectionProps {
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, title }) => {
   return (
     // Added shadow-xl, rounded-lg, and background color using the unified CSS variable
-    <section
+    <section id='projects'
       className="container mx-auto px-4 py-16 shadow-xl"
      // Removed inline style/variable reference for background, handled by Tailwind theme
     >
@@ -45,7 +45,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, title }) =>
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {project.tags.map((tag, tagIndex) => (
-                  <span key={tagIndex} className="px-3 py-1 rounded-full text-sm bg-gradient-to-br from-background to-background-secondary text-text">{tag}</span>
+                  <span key={tagIndex} className="px-3 py-1 rounded-full text-sm bg-primary text-text">{tag}</span>
                 ))}
               </div>
             </>

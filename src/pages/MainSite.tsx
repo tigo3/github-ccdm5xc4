@@ -67,11 +67,21 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
   }
   // Optionally handle translationsError state here, e.g., show an error message
 
-  const defaultBgFrom = '#111827';
-  const defaultBgTo = '#1F2937';
-
   return (
     <div className={`min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary`}>
+      
+      <nav className=" mb-4 flex justify-center flex-wrap gap-x-4 gap-y-2">
+      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#projects" >
+      Featured Projects</a>
+      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#about" >
+      About Me</a>
+      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#services" >
+      Services</a>
+      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#contact" >
+      Contact Me</a>
+      
+          </nav>
+      
       <header className="container mx-auto px-4 py-16 md:py-0">
         <div className="max-w-3xl mx-auto text-center">
           <Logo logoUrl={t.generalInfo.logoUrl} />
@@ -111,20 +121,6 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
               })
             )}
           </div>
-                  {/* Render dynamic page links */}
-        {dynamicPages && dynamicPages.length > 0 && (
-          <nav className="mb-4 flex justify-center flex-wrap gap-x-4 gap-y-2 mt-8">
-            {dynamicPages.map(page => (
-              <Link
-                key={page.id}
-                to={`/${page.slug}`}
-                className="text-secondary hover:text-primary transition-colors text-sm"
-              >
-                {page.title}
-              </Link>
-            ))}
-          </nav>
-        )}
         </div>
       </header>
 
@@ -135,7 +131,22 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
         />
       </Suspense>
 
-      <section className="container mx-auto px-4 py-16 bg-gray-800/50 backdrop-blur-sm" >
+                  {/* Render dynamic page links */}
+                  {dynamicPages && dynamicPages.length > 0 && (
+          <div className="mb-4 flex justify-center flex-wrap gap-x-4 gap-y-2 mt-4">
+            {dynamicPages.map(page => (
+              <Link
+                key={page.id}
+                to={`/${page.slug}`}
+                className="text-secondary hover:text-primary transition-colors text-sm"
+              >
+                {page.title}
+              </Link>
+            ))}
+          </div>
+        )}
+
+      <section id='about' className="container mx-auto px-4 py-16 bg-gray-800/50 backdrop-blur-sm" >
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-8 text-title">
             {/* Removed inline style: color: 'var(--title-color)' */}

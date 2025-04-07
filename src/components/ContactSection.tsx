@@ -96,7 +96,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => {
   }, [formData, showToast, requestConfirmation]);
 
   return (
-    <section
+    <section id='contact'
       className="container mx-auto px-4 py-16 shadow-xl backdrop-blur-sm"
     >
       <div className="bg-section max-w-3xl mx-auto p-8 shadow-lg">
