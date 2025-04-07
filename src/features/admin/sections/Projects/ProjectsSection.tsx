@@ -50,10 +50,42 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     }));
   };
 
-  // Helper to handle tags input (comma-separated string to array)
-  const handleTagsChange = (projectPath: (string | number)[], value: string) => {
-    const tagsArray = value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
-    handleChange(projectPath, tagsArray);
+  // State for the current tag input value for each project
+  const [tagInputValue, setTagInputValue] = useState<{ [key: string]: string }>({});
+
+  // Handle adding a new tag
+  const handleAddTag = (projectKey: string, projectPath: (string | number)[], currentTags: string[]) => {
+    const newTag = (tagInputValue[projectKey] || '').trim();
+    if (newTag && !currentTags.includes(newTag)) {
+      handleChange(projectPath, [...currentTags, newTag]);
+      setTagInputValue(prev => ({ ...prev, [projectKey]: '' })); // Clear input
+    } else if (!newTag) {
+      // If input is empty but user pressed Enter/Comma, just clear (prevents adding empty tags)
+       setTagInputValue(prev => ({ ...prev, [projectKey]: '' }));
+    }
+  };
+
+  // Handle removing a tag
+  const handleRemoveTag = (projectPath: (string | number)[], currentTags: string[], tagToRemove: string) => {
+    handleChange(projectPath, currentTags.filter(tag => tag !== tagToRemove));
+  };
+
+  // Handle input change for the tag input field
+  const handleTagInputChange = (projectKey: string, value: string) => {
+     // Prevent adding comma itself as part of the tag
+    if (value.endsWith(',')) {
+       setTagInputValue(prev => ({ ...prev, [projectKey]: value.slice(0, -1) })); // Update state without comma
+    } else {
+       setTagInputValue(prev => ({ ...prev, [projectKey]: value }));
+    }
+  };
+
+  // Handle key down events (Enter or Comma) for adding tags
+  const handleTagInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, projectKey: string, projectPath: (string | number)[], currentTags: string[]) => {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault(); // Prevent form submission or comma appearing in input
+      handleAddTag(projectKey, projectPath, currentTags);
+    }
   };
 
   return (
@@ -179,19 +211,35 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                       />
                     </div>
 
-                    {/* Project Tags Input */}
+                    {/* Improved Project Tags Input */}
                     <div>
-                      <label htmlFor={`project-tags-${projectKey}`} className="block text-sm font-medium text-gray-600 mb-1">
-                        Tags (comma-separated)
+                      <label htmlFor={`project-tags-input-${projectKey}`} className="block text-sm font-medium text-gray-600 mb-1">
+                        Tags (add with Enter or comma)
                       </label>
-                      <input
-                        id={`project-tags-${projectKey}`}
-                        type="text"
-                        value={currentTags.join(', ')} // Join array for display
-                        onChange={(e) => handleTagsChange(tagsPath, e.target.value)} // Use helper for array conversion
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="e.g., react, typescript, tailwind"
-                      />
+                      <div className="flex flex-wrap items-center gap-2 p-2 border border-gray-300 rounded-md bg-white">
+                        {currentTags.map((tag, index) => (
+                          <span key={index} className="flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTag(tagsPath, currentTags, tag)}
+                              className="ml-1.5 text-blue-600 hover:text-blue-800 focus:outline-none"
+                              aria-label={`Remove tag ${tag}`}
+                            >
+                              &times; {/* Multiplication sign as 'x' */}
+                            </button>
+                          </span>
+                        ))}
+                        <input
+                          id={`project-tags-input-${projectKey}`}
+                          type="text"
+                          value={tagInputValue[projectKey] || ''}
+                          onChange={(e) => handleTagInputChange(projectKey, e.target.value)}
+                          onKeyDown={(e) => handleTagInputKeyDown(e, projectKey, tagsPath, currentTags)}
+                          className="flex-grow px-1 py-0.5 border-none focus:ring-0 focus:outline-none text-sm"
+                          placeholder={currentTags.length === 0 ? "e.g., react, typescript" : "Add tag..."}
+                        />
+                      </div>
                     </div>
 
                     {/* Project Link Input */}

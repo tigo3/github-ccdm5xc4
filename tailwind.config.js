@@ -5,16 +5,17 @@ export default {
     extend: {
       colors: {
         // Corrected variable names to match the theme plugin
-        primary: 'var(--color-primary)', 
-        secondary: 'var(--color-secondary)',
-        // Assuming these are separate or handled differently
-        titel: 'var(--title-color)', 
-        h3titel: 'var(--h3title-color)', 
-        text: 'var(--color-text)', 
-        // You might want to add mappings for other theme variables here if needed, e.g.:
-        // background: 'var(--color-background)',
-        // 'background-secondary': 'var(--color-background-secondary)',
-        // 'text-secondary': 'var(--color-text-secondary)',
+        primary: 'var(--color-primary)',      // Use plugin variable
+        secondary: 'var(--color-secondary)',  // Use plugin variable
+        title: 'var(--title-color)',          // Use the specific title color variable
+        h3title: 'var(--h3-title-color)',     // Use the specific h3 title color variable
+        text: 'var(--color-text)',             // Use plugin variable
+        // Add mappings for background colors to use the plugin variables
+        background: 'var(--color-background)',
+        'background-secondary': 'var(--color-background-secondary)',
+        section: 'var(--section-bg-color)', // Add mapping for section background
+        // Add mapping for secondary text color as well, if used
+        'text-secondary': 'var(--color-text-secondary)',
       },
       fontFamily: {
         sans: ['var(--font-family)', 'sans-serif'], // Use CSS variable, fallback to sans-serif

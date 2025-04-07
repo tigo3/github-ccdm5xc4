@@ -91,16 +91,19 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed pr
   return (
     // Added shadow-xl, rounded-lg, and background color using the unified CSS variable
     <section
-      className="container mx-auto px-4 py-16 rounded-lg shadow-xl bg-gray-800/50 backdrop-blur-sm" // Removed bg-gray-800/50
-       // Use unified CSS variable
+      className="container mx-auto px-4 py-16 rounded-lg shadow-xl backdrop-blur-sm" // Removed bg-gray-800/50
+      // Removed inline style/variable reference for background
     >
       {/* Added background, padding, rounding, and shadow to the form container div */}
-      <div className="sectionbg max-w-3xl mx-auto p-8 rounded-lg shadow-lg " >
-        <h2 className="text-3xl font-bold text-center mb-8 " style={{ color: 'var(--title-color)' }}>{t.title}</h2>
+      <div className="bg-section max-w-3xl mx-auto p-8 rounded-lg shadow-lg " > {/* Replaced sectionbg with bg-section */}
+        <h2 className="text-3xl font-bold text-center mb-8 text-title">
+          {/* Removed inline style: color: 'var(--title-color)' */}
+          {t.title}
+        </h2>
         {/* Use the local handleSubmit */}
         <form onSubmit={handleSubmit} className="mt-8" >
           <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300" style={{ color: 'var(--h3title-color)' }}>
+            <label htmlFor="name" className="block text-sm font-medium text-h3title"> {/* Removed text-gray-300 and inline style */}
               {t.nameLabel}
             </label>
             <input
@@ -110,12 +113,12 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed pr
               value={formData.name}
               onChange={handleInputChange} // Use local handleInputChange
               placeholder={t.namePlaceholder}
-              className="mt-1 block w-full rounded-md  bg-gray-800/50 text-white border-gray-500 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full rounded-md bg-background-secondary/50 text-text border-secondary focus:ring-primary focus:border-primary" // Replaced hardcoded colors with theme colors
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300" style={{ color: 'var(--h3title-color)' }}>
+            <label htmlFor="email" className="block text-sm font-medium text-h3title"> {/* Removed text-gray-300 and inline style */}
               {t.emailLabel}
             </label>
             <input
@@ -125,12 +128,12 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed pr
               value={formData.email}
               onChange={handleInputChange} // Use local handleInputChange
               placeholder={t.emailPlaceholder}
-              className="mt-1 block w-full rounded-md  bg-gray-800/50 text-white border-gray-500 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full rounded-md bg-background-secondary/50 text-text border-secondary focus:ring-primary focus:border-primary" // Replaced hardcoded colors with theme colors
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="message" className="block text-sm font-medium text-gray-300" style={{ color: 'var(--h3title-color)' }}>
+            <label htmlFor="message" className="block text-sm font-medium text-h3title"> {/* Removed text-gray-300 and inline style */}
               {t.messageLabel}
             </label>
             <textarea
@@ -139,14 +142,14 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => { // Removed pr
               value={formData.message}
               onChange={handleInputChange} // Use local handleInputChange
               placeholder={t.messagePlaceholder}
-              className="mt-1 block w-full rounded-md  bg-gray-800/50 text-white border-gray-500 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full rounded-md bg-background-secondary/50 text-text border-secondary focus:ring-primary focus:border-primary" // Replaced hardcoded colors with theme colors
               rows={4}
               required
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-gray-900 text-white rounded hover:bg-blue-900 transition"
+            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition" // Replaced hardcoded colors with theme colors
           >
             {t.submitButton}
           </button>

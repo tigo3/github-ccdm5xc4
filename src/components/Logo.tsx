@@ -4,9 +4,7 @@ import defaultLogo from '/logo.png'; // Import the logo relative to the public d
 interface LogoProps {
   logoUrl?: string;
   altText?: string;
-  className?: string;
-  width?: number | string;
-  height?: number | string;
+  className?: string; // Keep className for overrides
 }
 
 const Logo: React.FC<LogoProps> = ({
@@ -16,13 +14,14 @@ const Logo: React.FC<LogoProps> = ({
 }) => {
   const effectiveLogoUrl = logoUrl || defaultLogo;
 
+  // Default Tailwind classes + merged custom classes
+  const combinedClassName = `block mx-auto h-[25rem] w-auto mb-6 ${className}`.trim(); // Default: block, centered, h-[25rem] (100*4px), auto width, margin-bottom-6
+
   return (
     <img
       src={effectiveLogoUrl}
       alt={altText}
-      // Apply passed className, keep pointer/select styles
-      className={`logo-image ${className}`} // Add a base class and merge with passed className
-
+      className={combinedClassName} // Apply combined classes
     />
   );
 };

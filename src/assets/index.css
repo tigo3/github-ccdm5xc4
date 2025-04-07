@@ -14,13 +14,10 @@
    CSS Variables (Theme Configuration)
    ========================================================================== */
 :root {
-  --primary-color: #377dc8; /* Default primary color */
-  --secondary-color: #0f3257; /* Default secondary color */
-  --title-color: #d7e3ee; /* Default title color */
-  --h3title-color: #d7e3ee; /* Default h3title color */
-  --text-color: #c6d3e2; /* Default text color */
+  /* Color variables are now managed by the Tailwind theme plugin */
+  /* Keep non-color variables if they are used elsewhere */
   --font-family: 'Noto Sans', sans-serif; /* Default font */
-  --section-bg-color: #374151; /* Gray-700 */
+  --section-bg-color: #374151; /* Default Section Background - Gray-700 */
 }
 
 /* ==========================================================================

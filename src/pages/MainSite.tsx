@@ -71,24 +71,21 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
   const defaultBgTo = '#1F2937';
 
   return (
-    <div
-      className={`min-h-screen text-white ltr`}
-      style={{
-        background: `linear-gradient(to bottom right, var(--background-from-color, ${defaultBgFrom}), var(--background-to-color, ${defaultBgTo}))`
-      }}
-    >
+    <div className={`min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary`}>
       <header className="container mx-auto px-4 py-16 md:py-0">
         <div className="max-w-3xl mx-auto text-center">
           <Logo logoUrl={t.generalInfo.logoUrl} />
           <h1
-            className="text-4xl md:text-6xl font-bold mb-6 text-primary"
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
+            className="text-4xl md:text-6xl font-bold mb-6 text-primary pointer-events-none select-none"
+            // Removed inline style: pointerEvents, userSelect
           >
             {t.generalInfo.siteTitle}
           </h1>
           <p
             className="text-xl md:text-2xl text-secondary mb-8"
-            style={{ pointerEvents: 'none', userSelect: 'none', }}
+            // Removed inline style: pointerEvents, userSelect
+            // Added Tailwind classes: pointer-events-none select-none (if needed, often not needed for static text)
+            // Let's assume they are not strictly needed here unless there's a specific interaction reason.
           >
             {t.generalInfo.siteRole}
           </p>
@@ -140,7 +137,10 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
 
       <section className="container mx-auto px-4 py-16 bg-gray-800/50 backdrop-blur-sm" >
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8" style={{ color: 'var(--title-color)' }}>{t.about.title}</h2>
+          <h2 className="text-3xl font-bold text-center mb-8 text-title">
+            {/* Removed inline style: color: 'var(--title-color)' */}
+            {t.about.title}
+          </h2>
           <p className="text-lg leading-relaxed text-text">
             {t.about.description}
           </p>
