@@ -97,9 +97,9 @@ const ContactSection: React.FC<ContactSectionProps> = ({ t }) => {
 
   return (
     <section
-      className="container mx-auto px-4 py-16 rounded-lg shadow-xl backdrop-blur-sm"
+      className="container mx-auto px-4 py-16 shadow-xl backdrop-blur-sm"
     >
-      <div className="bg-section max-w-3xl mx-auto p-8 rounded-lg shadow-lg">
+      <div className="bg-section max-w-3xl mx-auto p-8 shadow-lg">
         <h2 className="text-3xl font-bold text-center mb-8 text-title">
           {t.title}
         </h2>

@@ -17,7 +17,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, title }) =>
   return (
     // Added shadow-xl, rounded-lg, and background color using the unified CSS variable
     <section
-      className="container mx-auto px-4 py-16 rounded-lg shadow-xl"
+      className="container mx-auto px-4 py-16 shadow-xl"
      // Removed inline style/variable reference for background, handled by Tailwind theme
     >
       <h2 className="text-3xl font-bold text-center mb-12 text-title">
@@ -29,7 +29,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, title }) =>
           const ProjectContent = (
             <>
               <div className="flex justify-between items-start mb-4 ">
-                <Code2 className="text-blue-400" size={24} />
+                <Code2 className="text-primary" size={24} />
                 {/* Link icon if link exists */}
                 {project.link && (
                   <ExternalLink size={20} className="text-gray-500 "  />
@@ -45,7 +45,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, title }) =>
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {project.tags.map((tag, tagIndex) => (
-                  <span key={tagIndex} className="px-3 py-1 rounded-full text-sm bg-background-secondary/50">{tag}</span>
+                  <span key={tagIndex} className="px-3 py-1 rounded-full text-sm bg-gradient-to-br from-background to-background-secondary text-text">{tag}</span>
                 ))}
               </div>
             </>
@@ -58,13 +58,13 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects, title }) =>
               target="_blank"
               rel="noopener noreferrer"
               // Added base shadow-lg and sectionbg class
-              className="block rounded-lg p-6 shadow-lg hover:bg-gray-700 transition-colors hover:shadow-xl bg-section" // Replaced sectionbg with bg-section
+              className="block  p-6 shadow-lg hover:bg-gray-700 transition-colors hover:shadow-xl bg-section" // Replaced sectionbg with bg-section
             >
               {ProjectContent}
             </a>
           ) : (
              // Added shadow-lg
-            <div key={index} className="rounded-lg p-6 shadow-lg bg-section" >
+            <div key={index} className=" p-6 shadow-lg bg-section" >
               {ProjectContent}
             </div>
           );
