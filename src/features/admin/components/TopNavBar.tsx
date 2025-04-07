@@ -11,9 +11,6 @@ interface TopNavBarProps {
 }
 
 const TopNavBar: React.FC<TopNavBarProps> = ({
-  isMobile,
-  isSidebarOpen, // Only needed for mobile logic inside this component if any
-  isDesktopSidebarCollapsed, // Only needed for desktop logic inside this component if any
   onToggleMobileSidebar,
   onToggleDesktopSidebar,
   onLogout,

@@ -1,10 +1,5 @@
 import React from 'react';
-// Removed unused import for utils - functions are passed as props
 
-// Define the type for the keys of the 'en' object in translations
-// We might need to import defaultTranslations here too, or pass the type
-// For simplicity, let's assume isValidTranslationKey handles the type check internally
-// based on how it's defined in utils.tsx
 
 interface AdminTabsProps {
   activeTab: string | null;

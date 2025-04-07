@@ -1,10 +1,4 @@
-import React from 'react';
-// Adjust import path for defaultTranslations
 import { translations as defaultTranslations } from '../../../../config/translations';
-// Adjust import path for Project type if needed within renderFields (assuming it's used for project rendering logic)
-import { Project } from '../Projects/types';
-// Adjust import path for ServiceItem type if needed within renderFields (assuming it's used for service rendering logic)
-import { ServiceItem } from '../Services/types';
 
 // Define the type for the keys of the 'en' object in translations based on the imported default
 // This might be better placed in a shared types file if used elsewhere, but keep here for now if only used by isValidTranslationKey

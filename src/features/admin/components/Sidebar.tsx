@@ -1,7 +1,4 @@
 import React from 'react';
-import { 
-  LayoutDashboard, FileEdit, Palette, Link2, Settings, Image, FileText 
-} from 'lucide-react'; // Import necessary icons
 
 // Define the structure for a navigation item
 interface NavItem {

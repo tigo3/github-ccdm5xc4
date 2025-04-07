@@ -1,5 +1,4 @@
 import React from 'react';
-// Removed ThemeSwitcher import
 
 interface AdminHeaderProps {
   resetToDefaults: () => Promise<void>;
