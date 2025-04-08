@@ -1,12 +1,7 @@
 import React from 'react';
-// Import necessary types
-import { Page } from './types'; // Corrected path
-// Import custom hook and components
 import { usePageManagement } from './hooks/usePageManagement'; // Corrected path
 import PageForm from './components/PageForm'; // Corrected path
 import PageListItem from './components/PageListItem'; // Corrected path
-
-// Removed inline definitions for Types, PageForm, PageListItem, and usePageManagement
 
 
 // --- PagesTab Component ---

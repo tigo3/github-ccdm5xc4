@@ -1,7 +1,9 @@
 // src/pages/MainSite.tsx
 import React, { useState, useMemo, useEffect, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
+import TopNavigation from '../components/TopNavigation';
 import { Page } from '../features/admin/sections/Pages/types'; // Adjusted import path
+import BlogSection from '../components/sections/BlogSection';
 import { getProjectsData as defaultGetProjectsData } from '../data/ProjectsSectionData'; // Adjusted import path
 import Logo from '../components/Logo'; // Adjusted import path
 import { useTranslations } from '../hooks/useTranslations'; // Adjusted import path
@@ -69,20 +71,12 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
 
   return (
     <div className={`min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary`}>
+
+
+<div className=' container sticky top-0 z-10 ' > <TopNavigation  /> </div>
+
+      <header className="container mx-auto">
       
-      <nav className=" mb-4 flex justify-center flex-wrap gap-x-4 gap-y-2">
-      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#projects" >
-      Featured Projects</a>
-      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#about" >
-      About Me</a>
-      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#services" >
-      Services</a>
-      <a className="text-secondary hover:text-primary transition-colors text-sm" href="#contact" >
-      Contact Me</a>
-      
-          </nav>
-      
-      <header className="container mx-auto px-4 py-16 md:py-0">
         <div className="max-w-3xl mx-auto text-center">
           <Logo logoUrl={t.generalInfo.logoUrl} />
           <h1
@@ -131,20 +125,10 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
         />
       </Suspense>
 
-                  {/* Render dynamic page links */}
-                  {dynamicPages && dynamicPages.length > 0 && (
-          <div className="mb-4 flex justify-center flex-wrap gap-x-4 gap-y-2 mt-4">
-            {dynamicPages.map(page => (
-              <Link
-                key={page.id}
-                to={`/${page.slug}`}
-                className="text-secondary hover:text-primary transition-colors text-sm"
-              >
-                {page.title}
-              </Link>
-            ))}
-          </div>
-        )}
+                  <Suspense fallback={LoadingFallback}>
+                    <BlogSection dynamicPages={dynamicPages} />
+                  </Suspense>
+
 
       <section id='about' className="container mx-auto px-4 py-16 bg-gray-800/50 backdrop-blur-sm" >
         <div className="max-w-3xl mx-auto">
