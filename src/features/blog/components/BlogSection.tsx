@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Page } from '../../features/admin/sections/Pages/types';
+import { Page } from '../../admin/sections/Pages/types'; // Corrected path
 
 interface BlogSectionProps {
   dynamicPages: Page[];

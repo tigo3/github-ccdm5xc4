@@ -5,11 +5,11 @@ import { useGlobalStyles } from './hooks/useGlobalStyles';
 import { useDynamicPages } from './hooks/useDynamicPages';
 
 // Context
-import { NotificationProvider } from './context/NotificationContext';
+import { NotificationProvider } from './contexts/NotificationContext'; // Updated path
 
 // Components
-import ProtectedRoute from './components/auth/ProtectedRoute'; // Import the extracted component
-import ScrollToTopButton from './components/ScrollToTopButton';
+import ProtectedRoute from './features/auth/components/ProtectedRoute'; // Updated path
+import ScrollToTopButton from './components/common/ScrollToTopButton'; // Updated path
 
 // Pages
 import LoginPage from './features/admin/views/LoginPage';

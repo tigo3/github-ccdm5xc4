@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNotifications } from '../../../../context/NotificationContext';
+import { useNotifications } from '../../../../contexts/NotificationContext';
 import { Trash2, Edit, ChevronDown, ChevronUp } from 'lucide-react'; // Import icons
 import { Project } from './types'; // Import the Project type
 

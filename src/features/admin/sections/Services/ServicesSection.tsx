@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, Edit, ChevronDown, ChevronUp } from 'lucide-react'; // Import icons
-import { useNotifications } from '../../../../context/NotificationContext'; // Import notification hook
+import { useNotifications } from '../../../../contexts/NotificationContext'; // Import notification hook
 
 import { ServiceItem } from './types';
 

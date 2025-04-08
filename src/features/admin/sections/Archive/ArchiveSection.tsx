@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNotifications } from '../../../../context/NotificationContext'; // Import notification hook
+import { useNotifications } from '../../../../contexts/NotificationContext'; // Import notification hook
 import supabase from '../../../../config/supabaseConfig'; // Import supabase client
 import { db } from '../../../../config/firebaseConfig'; // Import firebase db
 import { collection, getDocs, doc, writeBatch, getDoc } from 'firebase/firestore'; // Import firestore functions, added getDoc

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import emailjs from 'emailjs-com';
-import { useNotifications } from '../context/NotificationContext';
+import { useNotifications } from '../../../contexts/NotificationContext';
 
 // Rate limiting constants
 const RATE_LIMIT_DURATION = 60000;

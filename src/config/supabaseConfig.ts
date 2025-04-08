@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl: string | undefined = 'https://dzmecnikrhsdedcagvzs.supabase.co';
-// IMPORTANT: Use environment variables in a real application for security
-const supabaseAnonKey: string | undefined = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bWVjbmlrcmhzZGVkY2FndnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1NTQ2NzcsImV4cCI6MjA1OTEzMDY3N30.JMMQMbVTS7QHDPkFInynQ-MszbrH_mEFl4uEDP9E5pk';
+// Load Supabase credentials from environment variables
+const supabaseUrl: string | undefined = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey: string | undefined = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let supabase: SupabaseClient | null = null;
 

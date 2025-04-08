@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Page } from '../types'; // Corrected path
 import { db } from '../../../../../config/firebaseConfig'; // Corrected path
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore';
-import { useNotifications } from '../../../../../context/NotificationContext'; // Corrected path
+import { useNotifications } from '../../../../../contexts/NotificationContext'; // Corrected path
 
 // --- usePageManagement Hook ---
 export const usePageManagement = () => {

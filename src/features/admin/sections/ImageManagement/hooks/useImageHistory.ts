@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import supabase from '../../../../../config/supabaseConfig'; // Corrected path
 import { FileObject } from '@supabase/storage-js';
-import { useNotifications } from '../../../../../context/NotificationContext'; // Corrected path
+import { useNotifications } from '../../../../../contexts/NotificationContext'; // Corrected path
 import { HistoryCopyStatus } from '../types/imageUploaderTypes';
 
 const BUCKET_NAME = 'img'; // Define bucket name

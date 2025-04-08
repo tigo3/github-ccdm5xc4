@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Page } from '../types'; // Corrected path
 import QuillEditor from '../../../components/QuillEditor'; // Corrected path
-import { useNotifications } from '../../../../../context/NotificationContext'; // Corrected path
+import { useNotifications } from '../../../../../contexts/NotificationContext'; // Corrected path
 
 // --- Types ---
 interface PageFormProps {

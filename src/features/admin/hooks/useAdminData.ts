@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { doc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from '../../../config/firebaseConfig'; // Adjust path as needed
 import { translations as defaultTranslations } from '../../../config/translations'; // Adjust path as needed
-import { useNotifications } from '../../../context/NotificationContext'; // Import the hook
+import { useNotifications } from '../../../contexts/NotificationContext'; // Import the hook
 // Updated imports for moved types and constants
 import { TranslationsType, LanguageKey } from '../../../types/translations'; // Moved global types
 import { newProjectTemplate } from '../sections/Projects/constants'; // Moved project constant

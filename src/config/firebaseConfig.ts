@@ -2,14 +2,32 @@ import { initializeApp, FirebaseApp } from "firebase/app";
 import { Auth, getAuth } from "firebase/auth";
 import { Firestore, getFirestore } from "firebase/firestore"; // Import Firestore
 
+// Validate environment variables
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID',
+  'VITE_FIREBASE_MEASUREMENT_ID',
+];
+
+for (const varName of requiredEnvVars) {
+  if (!import.meta.env[varName]) {
+    throw new Error(`Missing required environment variable: ${varName}`);
+  }
+}
+
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAsGrtbRSjz77iShv4tB0vQ33A23ie9JM8",
-  authDomain: "tiger3homs-f3a5f-d60da.firebaseapp.com",
-  projectId: "tiger3homs-f3a5f-d60da",
-  storageBucket: "tiger3homs-f3a5f-d60da.firebasestorage.app",
-  messagingSenderId: "509990310606",
-  appId: "1:509990310606:web:e36d91ea748c4cd64d369f",
-  measurementId: "G-DDZTZ6MR6S"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 let app: FirebaseApp | null = null;

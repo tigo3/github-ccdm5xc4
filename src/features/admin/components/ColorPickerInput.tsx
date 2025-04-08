@@ -1,6 +1,6 @@
 import React from 'react';
 import { Copy } from 'lucide-react';
-import { useNotifications } from '../../../context/NotificationContext';
+import { useNotifications } from '../../../contexts/NotificationContext';
 
 interface ColorPickerInputProps {
   label: string;

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import chroma from 'chroma-js';
 import { db } from '../../../../../config/firebaseConfig'; // Corrected path
-import { useNotifications } from '../../../../../context/NotificationContext'; // Corrected path
+import { useNotifications } from '../../../../../contexts/NotificationContext'; // Corrected path
 import { StyleData, SavedTheme, ThemeData } from '../types/styleEditorTypes'; // Corrected path
 
 // Default styles constant, kept close to the hook using it

@@ -1,18 +1,18 @@
 // src/pages/MainSite.tsx
 import React, { useState, useMemo, useEffect, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
-import TopNavigation from '../components/TopNavigation';
+import TopNavigation from '../components/layout/TopNavigation'; // Updated path
 import { Page } from '../features/admin/sections/Pages/types'; // Adjusted import path
-import BlogSection from '../components/sections/BlogSection';
-import { getProjectsData as defaultGetProjectsData } from '../data/ProjectsSectionData'; // Adjusted import path
-import Logo from '../components/Logo'; // Adjusted import path
+import BlogSection from '../features/blog/components/BlogSection'; // Updated path
+import { getProjectsData as defaultGetProjectsData } from '../features/projects/data/ProjectsSectionData'; // Updated path
+import Logo from '../components/common/Logo'; // Updated path
 import { useTranslations } from '../hooks/useTranslations'; // Adjusted import path
 import { useSocialLinks } from '../hooks/useSocialLinks'; // Adjusted import path
 
 // Lazy load sections within MainSite
-const ServicesSection = lazy(() => import('../components/ServicesSection')); // Adjusted import path
-const ProjectsSection = lazy(() => import('../components/ProjectsSection')); // Adjusted import path
-const ContactSection = lazy(() => import('../components/ContactSection')); // Adjusted import path
+const ServicesSection = lazy(() => import('../features/services/components/ServicesSection')); // Updated path
+const ProjectsSection = lazy(() => import('../features/projects/components/ProjectsSection')); // Updated path
+const ContactSection = lazy(() => import('../features/contact/components/ContactSection')); // Updated path
 
 // Define props for MainSite
 export interface MainSiteProps { // Export the interface
@@ -73,7 +73,7 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
     <div className={`min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary pb-20`}>
 
 
-<div className=' container sticky top-0 z-10 ' > <TopNavigation  /> </div>
+<div className=' container sticky top-0 z-10 ' > <TopNavigation /> </div>
 
       <header id='home' className="container mx-auto">
       

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FaBars, FaTimes, FaHome, FaProjectDiagram, FaBlog, FaUser, FaConciergeBell, FaEnvelope } from 'react-icons/fa'; // Import necessary icons
+import React from 'react';
+import { FaHome, FaProjectDiagram, FaBlog, FaUser, FaConciergeBell, FaEnvelope } from 'react-icons/fa'; // Import necessary icons
 
 interface TopNavigationProps {
   // Props can be added here if needed later

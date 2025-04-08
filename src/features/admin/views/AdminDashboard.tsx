@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 // Context
-import { NotificationProvider } from '../../../context/NotificationContext';
+import { NotificationProvider } from '../../../contexts/NotificationContext'; // Corrected path
 
 // Common Components
 

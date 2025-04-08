@@ -1,6 +1,6 @@
 import { useState, useRef, ChangeEvent, DragEvent } from 'react';
 import supabase from '../../../../../config/supabaseConfig'; // Corrected path
-import { useNotifications } from '../../../../../context/NotificationContext'; // Corrected path
+import { useNotifications } from '../../../../../contexts/NotificationContext'; // Corrected path
 import { UploadStatus } from '../types/imageUploaderTypes';
 
 const BUCKET_NAME = 'img'; // Define bucket name

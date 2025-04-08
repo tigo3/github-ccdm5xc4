@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { db } from '../../../../config/firebaseConfig';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from 'firebase/firestore';
 import { PlusCircle } from 'lucide-react';
-import { useNotifications } from '../../../../context/NotificationContext';
+import { useNotifications } from '../../../../contexts/NotificationContext';
 import { SocialLink } from './types'; // Corrected path
-import { availableIcons } from './constants/socialLinkConstants'; // Corrected path
 import SocialLinkForm from './components/SocialLinkForm'; // Corrected path
 import SocialLinkItem from './components/SocialLinkItem'; // Corrected path
 
