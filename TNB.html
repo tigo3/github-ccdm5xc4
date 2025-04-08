@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blurred Glass Navigation</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(45deg, #4158D0, #C850C0, #FFCC70);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+      height: 100vh;
+      padding: 20px;
+    }
+    
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 0 16px;
+      z-index: 100;
+    }
+    
+    .nav-container {
+      backdrop-filter: blur(16px);
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 0 0 16px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+    }
+    
+    .logo {
+      font-weight: 700;
+      font-size: 24px;
+      color: white;
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+    }
+    
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 8px 0;
+    }
+    
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      background: white;
+      bottom: 0;
+      left: 0;
+      transition: width 0.3s ease;
+    }
+    
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+    
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .search-icon, .menu-icon {
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    
+    .menu-icon {
+      display: none;
+    }
+    
+    .content {
+      margin-top: 160px;
+      color: white;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 48px;
+      margin-bottom: 24px;
+    }
+    
+    p {
+      font-size: 18px;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      
+      .menu-icon {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="nav-container">
+      <a href="#" class="logo">Glassmorphic</a>
+      
+      <ul class="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">Portfolio</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      
+      <div class="nav-right">
+        <div class="search-icon">🔍</div>
+        <div class="menu-icon">☰</div>
+      </div>
+    </div>
+  </header>
+  
+  <div class="content">
+    <h1>Blurred Glass Navigation</h1>
+    <p>This modern navigation bar features a blurred glass effect (glassmorphism) that creates depth and elegance. The design incorporates subtle animations, beautiful gradient background, and a responsive layout.</p>
+  </div>
+</body>
+</html>
