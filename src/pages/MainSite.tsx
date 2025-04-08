@@ -70,12 +70,12 @@ const MainSite: React.FC<MainSiteProps> = ({ dynamicPages }) => {
   // Optionally handle translationsError state here, e.g., show an error message
 
   return (
-    <div className={`min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary`}>
+    <div className={`min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary pb-20`}>
 
 
 <div className=' container sticky top-0 z-10 ' > <TopNavigation  /> </div>
 
-      <header className="container mx-auto">
+      <header id='home' className="container mx-auto">
       
         <div className="max-w-3xl mx-auto text-center">
           <Logo logoUrl={t.generalInfo.logoUrl} />

@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react'; // Removed useState import
 import { Link, useLocation } from 'react-router-dom';
 import { Page } from '../features/admin/sections/Pages/types'; // Import the Page type
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles to apply formatting
+import { useTranslations } from '../hooks/useTranslations'; // Added useTranslations import
 
 // Simple component to render dynamic page content
 const DynamicPage: React.FC<{ page: Page | undefined }> = ({ page }) => {
   const location = useLocation(); // Get location to show if page not found
+  const { t, isLoading: isLoadingTranslations, error: translationsError } = useTranslations('en'); // Added translations hook
+  // Removed isAdminLinkVisible state
+
+  // Removed admin link visibility toggle useEffect
+
+  // Log translation errors if any
+  useEffect(() => {
+    if (translationsError) {
+      console.error("DynamicPage: Error loading translations:", translationsError);
+    }
+  }, [translationsError]);
 
   if (!page) {
     return (
@@ -19,13 +31,25 @@ const DynamicPage: React.FC<{ page: Page | undefined }> = ({ page }) => {
     );
   }
 
+  // Use isLoading state from the hook
+  if (isLoadingTranslations) {
+    return <div className="flex items-center justify-center min-h-screen bg-gray-900"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div></div>;
+  }
+  // Optionally handle translationsError state here, e.g., show an error message
+
   // Basic rendering - consider using Markdown or HTML renderer based on content type
   // Apply base styles and ensure content area has min-height
   return (
+    // Modified flex container to push footer down
     <div
-      className="flex flex-col items-center justify-center min-h-screen text-center px-4min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary"
+      className="flex flex-col min-h-screen text-text ltr bg-gradient-to-br from-background to-background-secondary pb-20"
     >
-      <div className="container mx-auto px-4 py-16  backdrop-blur-sm">
+      {/* Content container that grows */}
+      <div className="flex-grow container mx-auto px-4 py-16 backdrop-blur-sm relative text-center">
+        {/* Icon Link added at the top */}
+        <Link to="/" className="absolute top-6 left-6 text-secondary hover:text-primary text-2xl" aria-label="Back to Home">
+          &larr;
+        </Link>
         <h1 className="text-4xl bg-section font-bold container mx-auto px-4 py-16  backdrop-blur-sm text-title" text-titel>{page.title}</h1>
         {/* Render content using Quill's CSS classes */}
         {/* WARNING: Ensure page.content is sanitized if it comes from untrusted sources */}
@@ -36,12 +60,13 @@ const DynamicPage: React.FC<{ page: Page | undefined }> = ({ page }) => {
           </div>
         </div>
         {/* Alternative for plain text: <p className="text-lg leading-relaxed text-text">{page.content}</p> */}
-        <div className="mt-12 text-center">
-            <Link to="/" className="text-secondary hover:text-primary underline">
-                &larr; Back to Home
-            </Link>
-        </div>
+        {/* Removed the old text link from the bottom */}
       </div>
+      {/* Footer updated: Removed Admin Dashboard link */}
+      <footer className="container mx-auto px-4 py-8 text-center"> {/* Removed relative positioning */}
+        <p className="text-secondary mb-4">{t.generalInfo.footerText}</p>
+        {/* Removed Admin Dashboard Link component */}
+      </footer>
     </div>
   );
 };

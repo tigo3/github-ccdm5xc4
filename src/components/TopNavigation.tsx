@@ -1,69 +1,65 @@
 import React, { useState } from 'react';
-import { FaBars, FaTimes } from 'react-icons/fa'; // Import FaTimes for close icon
+import { FaBars, FaTimes, FaHome, FaProjectDiagram, FaBlog, FaUser, FaConciergeBell, FaEnvelope } from 'react-icons/fa'; // Import necessary icons
 
 interface TopNavigationProps {
   // Props can be added here if needed later
 }
 
 const TopNavigation: React.FC<TopNavigationProps> = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  // Smooth scroll handler
+  const handleSmoothScroll = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault();
+    const targetId = href.substring(1); // Remove the '#'
+    const targetElement = document.getElementById(targetId);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
-  // Define link items for reusability
+  // Define link items with icons
   const navLinks = [
-    { href: '#', text: 'Home' },
-    { href: '#projects', text: 'Featured Projects' },
-    { href: '#blog', text: 'Blog' },
-    { href: '#about', text: 'About Me' },
-    { href: '#services', text: 'Services' },
-    { href: '#contact', text: 'Contact Me' },
+    { href: '#home', text: 'Home', icon: <FaHome /> },
+    { href: '#projects', text: 'Featured Projects', icon: <FaProjectDiagram /> },
+    { href: '#blog', text: 'Blog', icon: <FaBlog /> },
+    { href: '#about', text: 'About Me', icon: <FaUser /> },
+    { href: '#services', text: 'Services', icon: <FaConciergeBell /> },
+    { href: '#contact', text: 'Contact Me', icon: <FaEnvelope /> },
   ];
 
   return (
-    // Applied glassmorphism styles: bg-white/15, backdrop-blur-md, border, shadow, rounded-b, max-width, mx-auto, padding
-    <nav className="nav-container backdrop-blur-md border border-white/30 shadow-lg flex items-center justify-center max-w-screen-xl mx-auto px-6 py-4 sticky top-0 z-50">
-      {/* Hamburger Button - Only visible on small screens */}
-      <button
-        className="md:hidden text-white text-xl p-2 focus:outline-none" // Changed text color, focus ring
-        onClick={toggleMenu}
-        aria-label="Toggle menu" // Accessibility improvement
-      >
-        {isOpen ? <FaTimes /> : <FaBars />} {/* Toggle between Bars and Times icon */}
-      </button>
-
+    // Applied glassmorphism styles conditionally (md and up): backdrop-blur-md, border, shadow. Changed justify-center to justify-between.
+    <nav className="nav-container md:backdrop-blur-md md:shadow-lg flex items-center justify-center max-w-screen-xl mx-auto px-6 py-4 sticky top-0 z-50">
       <ul className="hidden md:flex md:items-center md:gap-x-8"> 
         {navLinks.map((link) => (
           <li key={link.href}>
             <a
-              className="text-white hover:underline underline-offset-4 decoration-2 transition-colors font-medium py-2" // Changed text color, hover effect, font weight, padding
+              className="text-text hover:underline underline-offset-4 decoration-2 transition-colors font-medium py-2 flex items-center" // Added flex items-center for vertical alignment
               href={link.href}
+              onClick={(e) => handleSmoothScroll(e, link.href)} // Added onClick for smooth scroll
             >
-              {link.text}
+              <span className="mr-2">{link.icon}</span> {/* Display icon */}
+              {link.text} {/* Display text */}
             </a>
           </li>
         ))}
       </ul>
 
-      {/* Mobile Navigation Links - Absolute positioned, shown when isOpen, hidden on medium+ */}
-      {isOpen && (
-        // Applied glassmorphism to mobile dropdown
-        <ul className="nav-links md:hidden flex flex-col absolute top-full left-0 w-full bg-white/15 backdrop-blur-md border border-white/30 rounded-b-lg shadow-lg py-2">
-          {navLinks.map((link) => (
-            <li key={link.href} className="w-full">
-              <a
-                className="block text-center text-white hover:bg-white/20 transition-colors font-medium py-3 px-4" // Changed text color, hover bg, font weight
-                href={link.href}
-                onClick={() => setIsOpen(false)} // Close menu on link click
-              >
-                {link.text}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Mobile Icons - Only visible on small screens */}
+      <ul className="md:hidden flex items-center gap-x-4"> {/* Use flex and gap for mobile icons */}
+        {navLinks.map((link) => (
+          <li key={link.href}>
+            <a
+              className="text-primary text-xl md:gap-x-8" // Style for mobile icons
+              href={link.href}
+              onClick={(e) => handleSmoothScroll(e, link.href)}
+              aria-label={link.text} // Add aria-label for accessibility
+            >
+              {link.icon}
+            </a>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 };
